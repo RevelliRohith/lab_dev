@@ -49,7 +49,7 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
         </button>
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-600 text-white font-bold text-sm shadow-sm">
-            AP
+            RL
           </div>
           <div>
             <div className="text-sm font-bold text-slate-900 leading-tight truncate max-w-[200px] sm:max-w-xs md:max-w-md">

@@ -8,19 +8,19 @@ INSERT INTO labs (
   max_staff_discount_percentage, critical_alert_phone
 ) VALUES (
   '11111111-1111-1111-1111-111111111111',
-  'Apex Diagnostic Pathology Laboratory',
-  'APEX-01',
-  '742 Evergreen Medical Pavilion, Suite 400, Springfield',
-  '+1 (555) 234-5678',
-  'ops@apexdiagnostic.test',
-  'USD',
-  'America/New_York',
-  'Dr. Eleanor Vance, MD, FCAP',
-  'CLIA-99D2084512',
-  'APEX DIAGNOSTIC LABORATORY - ACCREDITED CLINICAL SERVICES',
-  'This document contains confidential medical data. Released under authorized review.',
+  'Rishi Laboratory',
+  'RISHI-01',
+  'Choutuppal',
+  '9848228971',
+  'padma@gmail.com',
+  'INR',
+  'Asia/Kolkata',
+  'Vakiti Padma Reddy',
+  'RL-TS-9848228',
+  'Rishi Laboratory',
+  'Rishi Laboratory',
   15.00,
-  '+1 (555) 999-STAT'
+  '9848228971'
 ) ON CONFLICT (code) DO NOTHING;
 
 -- 2. Staff Profiles (Synthetically mapped)
@@ -29,11 +29,11 @@ INSERT INTO staff_profiles (id, lab_id, email, full_name, status, mfa_enabled, p
 VALUES (
   '22222222-2222-2222-2222-222222222222',
   '11111111-1111-1111-1111-111111111111',
-  'admin@apexdiagnostic.test',
-  'Sarah Jenkins (Lab Administrator)',
+  'padma@gmail.com',
+  'Padma (Administrator)',
   'active',
   true,
-  '+1 (555) 001-0001'
+  '9848228971'
 ) ON CONFLICT (email) DO NOTHING;
 
 -- Lab Staff
@@ -41,11 +41,11 @@ INSERT INTO staff_profiles (id, lab_id, email, full_name, status, mfa_enabled, p
 VALUES (
   '33333333-3333-3333-3333-333333333333',
   '11111111-1111-1111-1111-111111111111',
-  'tech@apexdiagnostic.test',
-  'David Chen, MLS(ASCP) (Lab Technologist)',
+  'rishi@gmail.com',
+  'Rishi (Lab Technologist)',
   'active',
   false,
-  '+1 (555) 001-0002'
+  '9848228971'
 ) ON CONFLICT (email) DO NOTHING;
 
 -- Authorized Reviewer
@@ -53,11 +53,11 @@ INSERT INTO staff_profiles (id, lab_id, email, full_name, status, mfa_enabled, p
 VALUES (
   '44444444-4444-4444-4444-444444444444',
   '11111111-1111-1111-1111-111111111111',
-  'reviewer@apexdiagnostic.test',
-  'Dr. Eleanor Vance, MD (Chief Pathologist)',
+  'rishika@gmail.com',
+  'Dr. Rishika (Consultant Pathologist)',
   'active',
   true,
-  '+1 (555) 001-0003'
+  '9848228971'
 ) ON CONFLICT (email) DO NOTHING;
 
 -- Disabled Staff member for testing access revocation
@@ -65,7 +65,7 @@ INSERT INTO staff_profiles (id, lab_id, email, full_name, status, mfa_enabled, p
 VALUES (
   '55555555-5555-5555-5555-555555555555',
   '11111111-1111-1111-1111-111111111111',
-  'former.staff@apexdiagnostic.test',
+  'former.staff@rishilab.com',
   'Mark Wood (Former Tech - Disabled)',
   'disabled',
   false,
@@ -87,10 +87,10 @@ INSERT INTO reviewer_scopes (
   '66666666-6666-6666-6666-666666666666',
   '44444444-4444-4444-4444-444444444444',
   '11111111-1111-1111-1111-111111111111',
-  'MD, FCAP, Board Certified Anatomic & Clinical Pathology (State Lic #MED-94021)',
+  'MBBS, MD (Pathology), Pathologist (Reg #TSMC-74892)',
   ARRAY['HEM', 'BIO', 'IMM', 'MICRO', 'GEN', 'ALL'],
   '2024-01-01',
-  '2028-12-31',
+  '2029-12-31',
   true
 ) ON CONFLICT DO NOTHING;
 

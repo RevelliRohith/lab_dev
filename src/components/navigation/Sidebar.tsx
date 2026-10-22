@@ -55,8 +55,8 @@ export function Sidebar() {
 
         {/* Footer info in sidebar */}
         <div className="p-4 mx-3 rounded-lg bg-slate-800/60 border border-slate-700/60 text-xs text-slate-400">
-          <p className="font-semibold text-slate-300">Apex LIS v1.0</p>
-          <p className="text-[11px] mt-0.5">Single-Tenant Diagnostic LIS</p>
+          <p className="font-semibold text-slate-300">Rishi Laboratory LIS v1.0</p>
+          <p className="text-[11px] mt-0.5">Clinical Diagnostic LIS</p>
           <div className="mt-2 pt-2 border-t border-slate-700/60 flex items-center justify-between text-[10px]">
             <span className="text-emerald-400 font-medium">● RLS Active</span>
             <span>CLIA Ready</span>

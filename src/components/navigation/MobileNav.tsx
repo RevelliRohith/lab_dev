@@ -30,9 +30,9 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-teal-600 text-white font-bold text-sm flex items-center justify-center">
-              AP
+              RL
             </div>
-            <span className="font-bold text-white text-sm">Diagnostic LIS</span>
+            <span className="font-bold text-white text-sm">Rishi Laboratory</span>
           </div>
           <button
             type="button"
