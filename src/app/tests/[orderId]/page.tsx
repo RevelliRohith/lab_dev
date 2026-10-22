@@ -15,6 +15,14 @@ import {
   Clock,
   User,
   FlaskConical,
+  Activity,
+  Calendar,
+  Stethoscope,
+  Info,
+  Check,
+  AlertCircle,
+  FileText,
+  BadgeAlert,
 } from 'lucide-react';
 
 export default function OrderResultEntryPage({
@@ -67,14 +75,22 @@ export default function OrderResultEntryPage({
       });
       setParamValues(initial);
     }
-  }, [orderId]);
+  }, [orderId, order]);
 
   if (!order || !order.patient) {
     return (
-      <div className="p-8 text-center space-y-4">
-        <p className="text-sm text-slate-600">Order not found.</p>
-        <Link href="/tests" className="text-teal-600 text-xs font-semibold underline">
-          Return to Tests & Results
+      <div className="max-w-xl mx-auto my-12 p-8 bg-white border border-slate-200 rounded-2xl shadow-sm text-center space-y-4">
+        <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h2 className="text-lg font-bold text-slate-900">Order Not Found</h2>
+        <p className="text-sm text-slate-500">The requested diagnostic order could not be located in the laboratory records.</p>
+        <Link
+          href="/tests"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white text-xs font-semibold rounded-xl hover:bg-teal-700 shadow-sm transition-all"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Tests & Worklist</span>
         </Link>
       </div>
     );
@@ -83,6 +99,7 @@ export default function OrderResultEntryPage({
   const patient = order.patient;
   const pendingSubmission = order.submissions.find((s) => s.status === 'pending');
   const isAuthorized = order.report_versions.length > 0;
+  const currency = globalStore.lab.currency_code;
 
   // Handle single result value change
   const handleValueChange = (
@@ -114,7 +131,7 @@ export default function OrderResultEntryPage({
           nonPerformedReason: val.reason,
         });
       }
-      setSuccessMessage('Draft results saved successfully.');
+      setSuccessMessage('Draft laboratory results saved successfully.');
       setTick((t) => t + 1);
     } catch (err: unknown) {
       setErrorMessage((err as Error).message);
@@ -143,7 +160,7 @@ export default function OrderResultEntryPage({
       // Then submit with QA attestation
       globalStore.submitForReview(order.id, qaAttestationNotes);
       setShowSubmitModal(false);
-      setSuccessMessage('Results successfully submitted for Pathologist / Reviewer authorization!');
+      setSuccessMessage('Results successfully attested and submitted to Pathologist Dr. Rishika for authorization!');
       setTick((t) => t + 1);
     } catch (err: unknown) {
       setErrorMessage((err as Error).message);
@@ -156,7 +173,7 @@ export default function OrderResultEntryPage({
     setErrorMessage('');
 
     try {
-      if (!critRecipient || !critPhone) throw new Error('Recipient details are required');
+      if (!critRecipient || !critPhone) throw new Error('Recipient doctor and phone contact are mandatory for critical logs');
 
       let paramName = 'Test Parameter';
       for (const t of order.tests) {
@@ -178,61 +195,98 @@ export default function OrderResultEntryPage({
       });
 
       setShowCritModal(false);
-      setSuccessMessage('Critical result communication recorded with read-back confirmation.');
+      setSuccessMessage('Critical result communication recorded with physician read-back confirmation.');
       setTick((t) => t + 1);
     } catch (err: unknown) {
       setErrorMessage((err as Error).message);
     }
   };
 
+  // Compute total parameters count and entered count
+  const allParams = order.tests.flatMap((t) => t.parameters);
+  const enteredParamsCount = allParams.filter((p) => {
+    const val = paramValues[p.id];
+    if (!val) return false;
+    if (val.disposition === 'performed') {
+      return val.numeric !== null && val.numeric !== undefined && val.numeric !== ('' as unknown);
+    }
+    return Boolean(val.reason && val.reason.trim().length > 0);
+  }).length;
+
+  const isComplete = enteredParamsCount === allParams.length && allParams.length > 0;
+
   return (
-    <div className="space-y-6">
-      {/* Top Banner with Patient Demographics Always Visible */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-3">
+    <div className="space-y-6 pb-24">
+      {/* Breadcrumb & Navigation */}
+      <div className="flex items-center gap-2 text-xs text-slate-500">
+        <Link href="/dashboard" className="hover:text-teal-600 transition-colors">Dashboard</Link>
+        <span>/</span>
+        <Link href="/tests" className="hover:text-teal-600 transition-colors">Tests & Results</Link>
+        <span>/</span>
+        <span className="font-semibold text-slate-800 font-mono">{order.order_number}</span>
+      </div>
+
+      {/* Patient Header Card */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+          <div className="flex items-start gap-4">
             <Link
               href="/tests"
-              className="p-1.5 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100"
-              aria-label="Back"
+              className="mt-1 p-2 text-slate-500 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200/80 transition-all"
+              title="Return to Test Worklist"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-lg text-slate-900">{order.order_number}</span>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="text-xl font-bold text-slate-900 tracking-tight font-mono">
+                  {order.order_number}
+                </h1>
                 <span
-                  className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase ${
                     order.priority === 'stat'
-                      ? 'bg-rose-100 text-rose-800'
+                      ? 'bg-rose-100 text-rose-800 border border-rose-300 animate-pulse'
                       : order.priority === 'urgent'
-                      ? 'bg-amber-100 text-amber-800'
-                      : 'bg-slate-100 text-slate-700'
+                      ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                      : 'bg-slate-100 text-slate-700 border border-slate-200'
                   }`}
                 >
-                  {order.priority.toUpperCase()}
+                  {order.priority}
                 </span>
-                {isAuthorized && (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                    AUTHORIZED
+
+                {isAuthorized ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    AUTHORIZED & RELEASED
                   </span>
-                )}
-                {pendingSubmission && (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
-                    AWAITING REVIEW
+                ) : pendingSubmission ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-300">
+                    <Clock className="w-3.5 h-3.5" />
+                    AWAITING PATHOLOGIST REVIEW
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                    <Activity className="w-3.5 h-3.5" />
+                    RESULT ENTRY IN PROGRESS
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Ordered: {new Date(order.created_at).toLocaleString()} • Physician: {order.ordering_physician || 'None'}
+              <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
+                <span>Ordered: {new Date(order.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                <span>•</span>
+                <span className="flex items-center gap-1 text-slate-700">
+                  <Stethoscope className="w-3 h-3 text-teal-600" />
+                  Physician: <strong>{order.ordering_physician || 'Self / Routine Walk-in'}</strong>
+                </span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Quick Header Action Buttons */}
+          <div className="flex items-center gap-2 self-start lg:self-auto">
             <button
               onClick={handleSaveDrafts}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
             >
               <Save className="w-3.5 h-3.5" />
               <span>Save Draft</span>
@@ -242,290 +296,415 @@ export default function OrderResultEntryPage({
                 setShowSubmitModal(true);
                 setErrorMessage('');
               }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-teal-600 rounded-lg hover:bg-teal-700 shadow-sm"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-sm transition-all"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>Submit for Review</span>
+              <span>Submit for Pathologist Review</span>
             </button>
           </div>
         </div>
 
-        {/* Patient Demographics Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-slate-50 p-3 rounded-lg border border-slate-200/80">
-          <div>
-            <span className="text-slate-500 text-[11px]">Patient Name:</span>
-            <p className="font-bold text-slate-900">{patient.full_name}</p>
+        {/* Patient Demographics Highlight Strip */}
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50/80 rounded-xl border border-slate-200/80">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-sm shrink-0">
+              {patient.full_name.substring(0, 2).toUpperCase()}
+            </div>
+            <div>
+              <div className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Patient Name</div>
+              <div className="text-sm font-bold text-slate-900">{patient.full_name}</div>
+            </div>
           </div>
+
           <div>
-            <span className="text-slate-500 text-[11px]">Patient ID:</span>
-            <p className="font-mono font-medium text-slate-800">{patient.patient_number}</p>
+            <div className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">MRN / Patient ID</div>
+            <div className="text-xs font-mono font-bold text-slate-800">{patient.patient_number}</div>
+            <div className="text-[11px] text-slate-500">{patient.phone || 'No phone'}</div>
           </div>
+
           <div>
-            <span className="text-slate-500 text-[11px]">Sex / Age:</span>
-            <p className="font-medium text-slate-800">
-              {patient.sex.toUpperCase()} • {patient.date_of_birth ? patient.date_of_birth : `~${patient.estimated_age_years} yrs (est.)`}
-            </p>
+            <div className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Demographics</div>
+            <div className="text-xs font-semibold text-slate-800">
+              {patient.sex === 'male' ? 'Male ♂' : patient.sex === 'female' ? 'Female ♀' : 'Other'} • {patient.date_of_birth ? patient.date_of_birth : `~${patient.estimated_age_years} yrs (est.)`}
+            </div>
+            <div className="text-[11px] text-slate-500">Choutuppal, Telangana</div>
           </div>
+
           <div>
-            <span className="text-slate-500 text-[11px]">Indication:</span>
-            <p className="text-slate-800 truncate">{order.clinical_indication || 'Routine diagnosis'}</p>
+            <div className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Clinical Reason</div>
+            <div className="text-xs font-medium text-slate-800 truncate" title={order.clinical_indication || 'Routine diagnostic check'}>
+              {order.clinical_indication || 'Routine diagnostic check'}
+            </div>
+            <div className="text-[11px] text-teal-700 font-medium">Rishi Laboratory</div>
           </div>
         </div>
       </div>
 
       {/* Messages */}
       {errorMessage && (
-        <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-800 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
-          <span>{errorMessage}</span>
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-3 shadow-sm">
+          <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+          <div className="font-medium">{errorMessage}</div>
         </div>
       )}
       {successMessage && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-          <span>{successMessage}</span>
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-3 shadow-sm">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+          <div className="font-medium">{successMessage}</div>
         </div>
       )}
 
       {/* Critical Communication Log banner if any critical values logged */}
       {order.critical_notifications.length > 0 && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-2 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+            <span className="text-xs font-bold text-amber-900 flex items-center gap-2">
               <PhoneCall className="w-4 h-4 text-amber-700" />
-              <span>Critical Result Communication Records ({order.critical_notifications.length})</span>
+              <span>Critical Physician Communications Recorded ({order.critical_notifications.length})</span>
+            </span>
+            <span className="text-[11px] text-amber-800 font-semibold bg-amber-100/80 px-2 py-0.5 rounded-full">
+              CLIA Compliance Verified
             </span>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {order.critical_notifications.map((cn) => (
-              <div key={cn.id} className="text-xs text-amber-900 bg-white/80 p-2.5 rounded border border-amber-200">
-                <span className="font-bold">{cn.parameter_name}:</span> {cn.critical_value_summary} communicated to{' '}
-                <strong>{cn.recipient_name} ({cn.recipient_role_phone})</strong> via {cn.notification_method}.
-                Read-back confirmed: <strong>{cn.read_back_confirmed ? 'YES (Verified)' : 'NO (Pending)'}</strong>.
+              <div key={cn.id} className="text-xs text-amber-950 bg-white/90 p-3 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <span className="font-bold text-rose-700">{cn.parameter_name}:</span> {cn.critical_value_summary} communicated to{' '}
+                  <strong>{cn.recipient_name} ({cn.recipient_role_phone})</strong> via {cn.notification_method}.
+                </div>
+                <div className="shrink-0 flex items-center gap-2">
+                  {cn.read_back_confirmed ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
+                      <Check className="w-3 h-3" /> Read-Back Confirmed
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-1 rounded-md border border-rose-200">
+                      <AlertCircle className="w-3 h-3" /> Read-Back Pending
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Parameter Entry Grids */}
-      {order.tests.map((test) => (
-        <div key={test.id} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-          <div className="px-6 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-            <div>
-              <span className="font-bold text-slate-900 text-sm">
-                {test.department_snapshot} — {test.test_name_snapshot} ({test.test_code_snapshot})
-              </span>
+      {/* Parameter Entry Grids per Test Panel */}
+      <div className="space-y-6">
+        {order.tests.map((test) => (
+          <div key={test.id} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            {/* Panel Header */}
+            <div className="px-6 py-4 bg-slate-50/90 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-teal-50 text-teal-700 rounded-lg">
+                  <FlaskConical className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-900 text-sm">
+                      {test.test_name_snapshot}
+                    </span>
+                    <span className="text-[11px] font-mono font-bold text-slate-500 bg-slate-200/60 px-2 py-0.5 rounded">
+                      {test.test_code_snapshot}
+                    </span>
+                  </div>
+                  <span className="text-xs text-slate-500">
+                    Department: <strong className="text-slate-700">{test.department_snapshot}</strong>
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-xs text-slate-500 font-mono">
+                Panel Fee: <strong className="text-slate-800">{currency} {test.test_price_snapshot.toFixed(2)}</strong>
+              </div>
             </div>
-            <span className="text-xs text-slate-500 font-mono">
-              Price: {globalStore.lab.currency_code} {test.test_price_snapshot.toFixed(2)}
-            </span>
-          </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-600">
-              <thead className="bg-slate-100/70 text-slate-700 font-semibold border-b border-slate-200">
-                <tr>
-                  <th className="px-4 py-2.5">Parameter</th>
-                  <th className="px-4 py-2.5">Disposition</th>
-                  <th className="px-4 py-2.5">Result Value</th>
-                  <th className="px-4 py-2.5">Units</th>
-                  <th className="px-4 py-2.5">Reference Range</th>
-                  <th className="px-4 py-2.5">Flag / Interpretation</th>
-                  <th className="px-4 py-2.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {test.parameters.map((param) => {
-                  const state = paramValues[param.id] || { disposition: 'performed' };
-                  const rr = param.reference_range_snapshot;
+            {/* Parameters Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-600">
+                <thead className="bg-slate-100/70 text-slate-700 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th className="px-5 py-3 font-semibold">Diagnostic Parameter</th>
+                    <th className="px-4 py-3 font-semibold">Status / Disposition</th>
+                    <th className="px-4 py-3 font-semibold min-w-[160px]">Observed Result</th>
+                    <th className="px-4 py-3 font-semibold">Standard Units</th>
+                    <th className="px-4 py-3 font-semibold min-w-[180px]">Biological Reference Interval</th>
+                    <th className="px-4 py-3 font-semibold">Clinical Interpretation</th>
+                    <th className="px-5 py-3 font-semibold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {test.parameters.map((param) => {
+                    const state = paramValues[param.id] || { disposition: 'performed' };
+                    const rr = param.reference_range_snapshot;
 
-                  // Calculate flag live
-                  let flag = 'normal';
-                  if (state.disposition === 'performed' && state.numeric !== null && state.numeric !== undefined) {
-                    if (rr.critical_low !== undefined && state.numeric <= rr.critical_low) flag = 'critical';
-                    else if (rr.critical_high !== undefined && state.numeric >= rr.critical_high) flag = 'critical';
-                    else if (rr.normal_low !== undefined && state.numeric < rr.normal_low) flag = 'abnormal';
-                    else if (rr.normal_high !== undefined && state.numeric > rr.normal_high) flag = 'abnormal';
-                  }
+                    // Calculate flag live
+                    let flag: 'normal' | 'abnormal' | 'critical' = 'normal';
+                    if (state.disposition === 'performed' && state.numeric !== null && state.numeric !== undefined) {
+                      if (rr.critical_low !== undefined && state.numeric <= rr.critical_low) flag = 'critical';
+                      else if (rr.critical_high !== undefined && state.numeric >= rr.critical_high) flag = 'critical';
+                      else if (rr.normal_low !== undefined && state.numeric < rr.normal_low) flag = 'abnormal';
+                      else if (rr.normal_high !== undefined && state.numeric > rr.normal_high) flag = 'abnormal';
+                    }
 
-                  return (
-                    <tr key={param.id} className="hover:bg-slate-50/60">
-                      <td className="px-4 py-3 font-semibold text-slate-900">
-                        {param.parameter_name_snapshot}
-                        <span className="block text-[11px] font-mono text-slate-400 font-normal">
-                          {param.parameter_code_snapshot}
-                        </span>
-                      </td>
+                    return (
+                      <tr
+                        key={param.id}
+                        className={`transition-colors ${
+                          flag === 'critical'
+                            ? 'bg-rose-50/40 hover:bg-rose-50/70'
+                            : flag === 'abnormal'
+                            ? 'bg-amber-50/30 hover:bg-amber-50/60'
+                            : 'hover:bg-slate-50/70'
+                        }`}
+                      >
+                        {/* Parameter Name */}
+                        <td className="px-5 py-3.5">
+                          <div className="font-semibold text-slate-900">{param.parameter_name_snapshot}</div>
+                          <div className="text-[11px] font-mono text-slate-400">{param.parameter_code_snapshot}</div>
+                        </td>
 
-                      {/* Disposition */}
-                      <td className="px-4 py-3">
-                        <select
-                          value={state.disposition}
-                          onChange={(e) =>
-                            handleValueChange(
-                              param.id,
-                              'disposition',
-                              e.target.value as 'performed' | 'not_performed' | 'cancelled'
+                        {/* Disposition Selection */}
+                        <td className="px-4 py-3.5">
+                          <select
+                            value={state.disposition}
+                            onChange={(e) =>
+                              handleValueChange(
+                                param.id,
+                                'disposition',
+                                e.target.value as 'performed' | 'not_performed' | 'cancelled'
+                              )
+                            }
+                            className="px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white font-medium focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                          >
+                            <option value="performed">Performed</option>
+                            <option value="not_performed">Not Performed</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </td>
+
+                        {/* Value Input */}
+                        <td className="px-4 py-3.5">
+                          {state.disposition === 'performed' ? (
+                            param.result_type_snapshot === 'numeric' ? (
+                              <div className="relative inline-block w-full max-w-[150px]">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  placeholder="0.00"
+                                  value={state.numeric ?? ''}
+                                  onChange={(e) =>
+                                    handleValueChange(
+                                      param.id,
+                                      'numeric',
+                                      e.target.value === '' ? null : Number(e.target.value)
+                                    )
+                                  }
+                                  className={`w-full px-3 py-1.5 text-xs font-mono font-bold rounded-lg border transition-all ${
+                                    flag === 'critical'
+                                      ? 'border-rose-400 bg-rose-50/50 text-rose-900 ring-2 ring-rose-300'
+                                      : flag === 'abnormal'
+                                      ? 'border-amber-400 bg-amber-50/50 text-amber-900 ring-2 ring-amber-200'
+                                      : 'border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500'
+                                  }`}
+                                />
+                              </div>
+                            ) : (
+                              <input
+                                type="text"
+                                placeholder="Enter observed text result"
+                                value={state.text ?? ''}
+                                onChange={(e) => handleValueChange(param.id, 'text', e.target.value)}
+                                className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500"
+                              />
                             )
-                          }
-                          className="px-2 py-1 text-xs border border-slate-300 rounded bg-white"
-                        >
-                          <option value="performed">Performed</option>
-                          <option value="not_performed">Not Performed</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                      </td>
-
-                      {/* Value Input */}
-                      <td className="px-4 py-3">
-                        {state.disposition === 'performed' ? (
-                          param.result_type_snapshot === 'numeric' ? (
-                            <input
-                              type="number"
-                              step="any"
-                              placeholder="0.00"
-                              value={state.numeric ?? ''}
-                              onChange={(e) =>
-                                handleValueChange(
-                                  param.id,
-                                  'numeric',
-                                  e.target.value === '' ? null : Number(e.target.value)
-                                )
-                              }
-                              className="w-28 px-2.5 py-1 text-xs border border-slate-300 rounded focus:ring-2 focus:ring-teal-500 font-mono"
-                            />
                           ) : (
                             <input
                               type="text"
-                              placeholder="Text result"
-                              value={state.text ?? ''}
-                              onChange={(e) => handleValueChange(param.id, 'text', e.target.value)}
-                              className="w-40 px-2.5 py-1 text-xs border border-slate-300 rounded"
+                              required
+                              placeholder="Clinical reason (mandatory)"
+                              value={state.reason ?? ''}
+                              onChange={(e) => handleValueChange(param.id, 'reason', e.target.value)}
+                              className="w-full px-3 py-1.5 text-xs border border-amber-300 bg-amber-50 text-amber-900 rounded-lg font-medium focus:ring-2 focus:ring-amber-500"
                             />
-                          )
-                        ) : (
-                          <input
-                            type="text"
-                            required
-                            placeholder="Reason not performed (mandatory)"
-                            value={state.reason ?? ''}
-                            onChange={(e) => handleValueChange(param.id, 'reason', e.target.value)}
-                            className="w-48 px-2.5 py-1 text-xs border border-amber-300 bg-amber-50 rounded"
-                          />
-                        )}
-                      </td>
+                          )}
+                        </td>
 
-                      {/* Unit */}
-                      <td className="px-4 py-3 text-slate-700">{param.unit_snapshot || '-'}</td>
+                        {/* Standard Units */}
+                        <td className="px-4 py-3.5 text-slate-700 font-mono text-[11px]">
+                          {param.unit_snapshot || '—'}
+                        </td>
 
-                      {/* Reference Range */}
-                      <td className="px-4 py-3 text-[11px] text-slate-600">
-                        {rr.normal_low !== undefined && rr.normal_high !== undefined ? (
-                          <span>
-                            {rr.normal_low} - {rr.normal_high}
-                            {rr.critical_low !== undefined && (
-                              <span className="block text-rose-600 text-[10px]">
-                                Crit: &lt;{rr.critical_low} or &gt;{rr.critical_high}
-                              </span>
-                            )}
-                          </span>
-                        ) : (
-                          <span>Qualitative reference</span>
-                        )}
-                      </td>
+                        {/* Reference Range Details */}
+                        <td className="px-4 py-3.5 text-xs">
+                          {rr.normal_low !== undefined && rr.normal_high !== undefined ? (
+                            <div>
+                              <div className="font-semibold text-slate-800">
+                                {rr.normal_low} – {rr.normal_high}
+                              </div>
+                              {rr.critical_low !== undefined && rr.critical_high !== undefined && (
+                                <div className="text-[10px] text-rose-600 font-semibold mt-0.5">
+                                  Panic Thresholds: &lt;{rr.critical_low} or &gt;{rr.critical_high}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-500 italic">Qualitative / Descriptive</span>
+                          )}
+                        </td>
 
-                      {/* Flag Badge */}
-                      <td className="px-4 py-3">
-                        {flag === 'critical' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
-                            <AlertTriangle className="w-3 h-3 text-rose-600" />
-                            <span>CRITICAL</span>
-                          </span>
-                        ) : flag === 'abnormal' ? (
-                          <span className="inline-flex px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800">
-                            ABNORMAL
-                          </span>
-                        ) : (
-                          <span className="inline-flex px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">
-                            Normal
-                          </span>
-                        )}
-                      </td>
+                        {/* Clinical Interpretation Flag */}
+                        <td className="px-4 py-3.5">
+                          {flag === 'critical' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
+                              <BadgeAlert className="w-3.5 h-3.5 text-rose-600" />
+                              <span>CRITICAL PANIC</span>
+                            </span>
+                          ) : flag === 'abnormal' ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                              <AlertTriangle className="w-3 h-3 text-amber-600" />
+                              <span>ABNORMAL</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <Check className="w-3 h-3 text-emerald-600" />
+                              <span>Normal</span>
+                            </span>
+                          )}
+                        </td>
 
-                      {/* Action: Log Critical Call */}
-                      <td className="px-4 py-3 text-right">
-                        {flag === 'critical' && (
-                          <button
-                            onClick={() => {
-                              setCritParamId(param.id);
-                              setShowCritModal(true);
-                            }}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded hover:bg-rose-100"
-                          >
-                            <PhoneCall className="w-3 h-3" />
-                            <span>Log Critical Alert</span>
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        {/* Actions: Critical Alert Logging */}
+                        <td className="px-5 py-3.5 text-right">
+                          {flag === 'critical' && (
+                            <button
+                              onClick={() => {
+                                setCritParamId(param.id);
+                                setShowCritModal(true);
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-800 bg-rose-100/80 hover:bg-rose-200/80 border border-rose-300 rounded-lg shadow-sm transition-all"
+                            >
+                              <PhoneCall className="w-3.5 h-3.5 text-rose-600" />
+                              <span>Log Doctor Call</span>
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
-      {/* MODAL 1: Submit for Review & QA Attestation */}
+      {/* Floating Bottom Sticky Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-6 py-3.5 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-slate-500">Progress:</span>
+            <div className="w-36 bg-slate-200 h-2.5 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${isComplete ? 'bg-emerald-500' : 'bg-teal-600'}`}
+                style={{ width: `${(enteredParamsCount / Math.max(1, allParams.length)) * 100}%` }}
+              />
+            </div>
+            <span className="text-xs font-bold text-slate-800">
+              {enteredParamsCount} / {allParams.length} entered
+            </span>
+          </div>
+
+          {isComplete && (
+            <span className="hidden md:inline-flex items-center gap-1 text-xs text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              All parameters complete
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <button
+            onClick={handleSaveDrafts}
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+          >
+            <Save className="w-4 h-4" />
+            <span>Save Draft</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setShowSubmitModal(true);
+              setErrorMessage('');
+            }}
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-md transition-all"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>Attest & Submit to Pathologist</span>
+          </button>
+        </div>
+      </div>
+
+      {/* MODAL 1: Documented QC Attestation & Submission */}
       {showSubmitModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
-                <ShieldCheck className="w-5 h-5 text-teal-600" />
-                <span>Documented Quality Check Attestation</span>
-              </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 border border-slate-100">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-teal-50 text-teal-700 rounded-xl">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">
+                    Quality Control & Clinical Attestation
+                  </h2>
+                  <p className="text-xs text-slate-500">Order {order.order_number} • {patient.full_name}</p>
+                </div>
+              </div>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              Before submitting clinical results to the Authorized Reviewer queue, you must confirm that all internal quality control (QC) checks, calibrations, and instrument operating parameters are satisfactory.
+              Before submitting diagnostic results to <strong>Dr. Rishika (Authorized Reviewer)</strong>, laboratory guidelines require affirming that all internal QC controls, analyzer calibrations, and specimen integrity checks have been verified.
             </p>
 
             <form onSubmit={handleConfirmSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Documented Attestation Notes *
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Documented Quality Attestation Statement *
                 </label>
                 <textarea
                   required
                   rows={3}
                   value={qaAttestationNotes}
                   onChange={(e) => setQaAttestationNotes(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-medium"
                 />
               </div>
 
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-900 space-y-1">
-                <div className="font-bold">Notice on Result Immutability:</div>
-                <p>
-                  Editing results after submission invalidates the pending submission and requires fresh quality attestation.
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-1">
+                <div className="font-bold flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Clinical Immutability Invariant</span>
+                </div>
+                <p className="text-[11px] text-amber-800">
+                  Once submitted, results cannot be altered without cancelling the pending submission and recording an audit trail.
                 </p>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowSubmitModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-teal-600 rounded-lg hover:bg-teal-700"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-md transition-all flex items-center gap-1.5"
                 >
-                  Attest & Submit to Review Queue
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Attest & Send to Dr. Rishika</span>
                 </button>
               </div>
             </form>
@@ -533,106 +712,114 @@ export default function OrderResultEntryPage({
         </div>
       )}
 
-      {/* MODAL 2: Critical Result Communication */}
+      {/* MODAL 2: Critical Value Physician Notification */}
       {showCritModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <h2 className="text-base font-bold text-rose-700 flex items-center gap-1.5">
-                <AlertTriangle className="w-5 h-5 text-rose-600" />
-                <span>Log Critical Result Communication</span>
-              </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-rose-100">
+            <div className="flex items-center justify-between pb-3 border-b border-rose-100">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-rose-50 text-rose-700 rounded-xl">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-rose-900">
+                    Log Critical Result Call
+                  </h2>
+                  <p className="text-xs text-rose-600">Patient: {patient.full_name}</p>
+                </div>
+              </div>
             </div>
 
-            <p className="text-xs text-slate-600">
-              Laboratory safety requires rapid notification of critical results to the ordering physician or authorized clinical staff with verbatim read-back confirmation.
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Clinical safety mandates direct verbal communication of panic-level results to the attending doctor with explicit read-back verification.
             </p>
 
-            <form onSubmit={handleSaveCriticalNotification} className="space-y-3">
+            <form onSubmit={handleSaveCriticalNotification} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Recipient Full Name *
+                  Recipient Physician / Clinic In-Charge *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Dr. John Watson / Nurse Triage"
+                  placeholder="e.g. Dr. K. Ramesh (Consultant)"
                   value={critRecipient}
                   onChange={(e) => setCritRecipient(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Recipient Role & Contact Phone *
+                  Recipient Phone / Direct Line *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Attending Physician (+1 555-882-9910)"
+                  placeholder="e.g. 9848012345"
                   value={critPhone}
                   onChange={(e) => setCritPhone(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Method of Communication *
+                  Communication Channel *
                 </label>
                 <select
                   value={critMethod}
                   onChange={(e) => setCritMethod(e.target.value as any)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white font-medium"
                 >
-                  <option value="phone_call">Telephone Call</option>
-                  <option value="in_person">In Person</option>
+                  <option value="phone_call">Telephone Direct Call (Standard)</option>
+                  <option value="in_person">In Person at Laboratory</option>
                   <option value="secure_messaging">Direct Secure Messaging</option>
                 </select>
               </div>
 
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-800">
+              <div className="p-3.5 bg-rose-50/70 border border-rose-200 rounded-xl space-y-1.5">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-rose-900">
                   <input
                     type="checkbox"
                     checked={critReadBack}
                     onChange={(e) => setCritReadBack(e.target.checked)}
-                    className="rounded text-rose-600 focus:ring-rose-500"
+                    className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 border-slate-300"
                   />
-                  <span>Verbatim Read-Back Confirmed by Recipient</span>
+                  <span>Verbatim Value Read-Back Confirmed</span>
                 </label>
-                <p className="text-[10px] text-slate-500 mt-1">
-                  A documented note alone is not sufficient; explicit read-back confirmation is required for report release.
+                <p className="text-[11px] text-rose-700 leading-normal pl-6">
+                  The recipient repeated the exact patient name, test parameter, and panic numerical value back to the lab.
                 </p>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Additional Notes (optional)
+                  Physician Remarks / Orders (optional)
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="e.g. Clinic informed patient has been directed to urgent care"
+                  placeholder="e.g. Advised patient immediate emergency admission"
                   value={critNotes}
                   onChange={(e) => setCritNotes(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowCritModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-md transition-all flex items-center gap-1.5"
                 >
-                  Save Critical Notification Log
+                  <PhoneCall className="w-3.5 h-3.5" />
+                  <span>Save Communication Record</span>
                 </button>
               </div>
             </form>

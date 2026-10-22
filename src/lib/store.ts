@@ -71,7 +71,8 @@ const initialStaff: StaffProfile[] = [
     reviewer_scope: {
       id: '66666666-6666-6666-6666-666666666666',
       staff_id: '44444444-4444-4444-4444-444444444444',
-      credentials_title: 'MBBS, MD (Pathology), Pathologist (Reg #TSMC-74892)',
+      credentials_title: 'MBBS, MD (Pathology), Pathologist',
+      medical_license_number: 'TSMC-74892',
       verified_scopes: ['HEM', 'BIO', 'IMM', 'MICRO', 'GEN', 'ALL'],
       valid_from: '2024-01-01',
       valid_to: '2029-12-31',

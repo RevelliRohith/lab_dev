@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { globalStore } from '@/lib/store';
 import { generateCsv } from '@/lib/export';
 import {
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   Receipt,
   Download,
@@ -15,10 +15,22 @@ import {
   Calendar,
   X,
   CreditCard,
+  Banknote,
+  QrCode,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Search,
+  Filter,
+  Check,
+  Building,
 } from 'lucide-react';
 
 export default function FinancePage() {
   const [, setTick] = useState(0);
+
+  // Active filter tab
+  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'part_paid' | 'unpaid' | 'refunded'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Refund Modal State
   const [showRefundModal, setShowRefundModal] = useState(false);
@@ -33,6 +45,11 @@ export default function FinancePage() {
   const [expVendor, setExpVendor] = useState('');
   const [expDesc, setExpDesc] = useState('');
   const [expRef, setExpRef] = useState('');
+
+  // Quick Pay Modal State
+  const [payInvoiceId, setPayInvoiceId] = useState<string | null>(null);
+  const [payAmount, setPayAmount] = useState<number>(0);
+  const [payMethod, setPayMethod] = useState<'cash' | 'upi' | 'card'>('upi');
 
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -55,6 +72,31 @@ export default function FinancePage() {
   const totalExpenses = globalStore.expenses.reduce((acc, e) => acc + e.amount, 0);
   const netOperatingIncome = totalCollected - totalRefunded - totalExpenses;
 
+  // Handle Quick Pay
+  const handleQuickPay = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!payInvoiceId) return;
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    try {
+      if (payAmount <= 0) throw new Error('Payment amount must be greater than zero');
+      globalStore.recordPayment({
+        invoiceId: payInvoiceId,
+        amount: payAmount,
+        paymentMethod: payMethod === 'upi' ? 'bank_transfer' : payMethod,
+        referenceNote: `Settled via ${payMethod.toUpperCase()}`,
+        idempotencyKey: `PAY-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+      });
+
+      setSuccessMessage(`Payment of ₹${payAmount.toFixed(2)} recorded successfully via ${payMethod.toUpperCase()}.`);
+      setPayInvoiceId(null);
+      setTick((t) => t + 1);
+    } catch (err: unknown) {
+      setErrorMessage((err as Error).message);
+    }
+  };
+
   // Handle Refund (Admin Only)
   const handleRecordRefund = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +107,7 @@ export default function FinancePage() {
       if (!refundInvoiceId) throw new Error('Invoice is required');
       if (refundAmount <= 0) throw new Error('Refund amount must be greater than zero');
       if (!refundReason || refundReason.trim().length < 5) {
-        throw new Error('Documented reason is mandatory for refunds');
+        throw new Error('A documented reason is mandatory for processing patient refunds');
       }
 
       const ref = globalStore.recordRefund({
@@ -75,7 +117,7 @@ export default function FinancePage() {
         idempotencyKey: `REFUND-${Date.now()}-${Math.random().toString(36).substring(7)}`,
       });
 
-      setSuccessMessage(`Refund of ${currency} ${ref.amount.toFixed(2)} recorded successfully.`);
+      setSuccessMessage(`Refund of ₹${ref.amount.toFixed(2)} recorded successfully.`);
       setShowRefundModal(false);
       setRefundAmount(0);
       setRefundReason('');
@@ -104,7 +146,7 @@ export default function FinancePage() {
         expenseDate: new Date().toISOString().split('T')[0],
       });
 
-      setSuccessMessage(`Expense of ${currency} ${exp.amount.toFixed(2)} (${exp.vendor}) recorded.`);
+      setSuccessMessage(`Expense of ₹${exp.amount.toFixed(2)} for ${exp.vendor} (${exp.category}) recorded.`);
       setShowExpenseModal(false);
       setExpAmount(0);
       setExpVendor('');
@@ -159,7 +201,7 @@ export default function FinancePage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `financial-reconciliation-${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `rishi-lab-finance-reconciliation-${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -167,8 +209,8 @@ export default function FinancePage() {
 
   if (!isAdmin) {
     return (
-      <div className="p-8 bg-white border border-slate-200 rounded-xl text-center space-y-4 max-w-lg mx-auto mt-12 shadow-sm">
-        <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+      <div className="p-8 bg-white border border-slate-200 rounded-2xl text-center space-y-4 max-w-lg mx-auto mt-12 shadow-sm">
+        <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center mx-auto">
           <ShieldAlert className="w-6 h-6" />
         </div>
         <h2 className="text-lg font-bold text-slate-900">Finance Access Restricted</h2>
@@ -177,33 +219,51 @@ export default function FinancePage() {
           Aggregate laboratory finance, refund authorization, expense recording, and CSV accounting exports are strictly reserved for the <strong>Admin</strong> role.
         </p>
         <p className="text-xs text-slate-500">
-          Switch to <strong>Sarah Jenkins (Administrator)</strong> in the top-bar profile switcher to inspect and test the finance module.
+          Switch to <strong>Padma (Administrator)</strong> in the top-bar profile switcher to inspect and manage laboratory accounts.
         </p>
       </div>
     );
   }
 
+  // Filter invoices
+  const filteredInvoices = globalStore.invoices.filter((inv) => {
+    const order = globalStore.orders.find((o) => o.id === inv.order_id);
+    const patientName = order?.patient?.full_name.toLowerCase() || '';
+    const invNum = inv.invoice_number.toLowerCase();
+    const matchesSearch = !searchQuery || patientName.includes(searchQuery.toLowerCase()) || invNum.includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+    if (statusFilter === 'all') return true;
+    return inv.status === statusFilter;
+  });
+
   return (
     <div className="space-y-6">
-      {/* Title */}
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Finance & Reconciliation</h1>
-          <p className="text-sm text-slate-600 mt-1">
-            Collections, refunds, lab reagent expenses, daily reconciliation, and safe CSV exports.
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Finance & Daily Reconciliation</h1>
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Admin Workspace
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Collections, dues, refunds, lab reagent operational expenses, and permission-controlled CSV ledger exports.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => setShowExpenseModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-sm transition-all"
           >
             <PlusCircle className="w-4 h-4 text-slate-500" />
-            <span>Record Expense</span>
+            <span>Record Lab Expense</span>
           </button>
           <button
             onClick={handleExportCsv}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-teal-600 rounded-lg hover:bg-teal-700 shadow-sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-sm transition-all"
           >
             <Download className="w-4 h-4" />
             <span>Export Protected CSV</span>
@@ -213,117 +273,198 @@ export default function FinancePage() {
 
       {/* Messages */}
       {errorMessage && (
-        <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-800 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
-          <span>{errorMessage}</span>
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-center gap-3 shadow-sm">
+          <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
+          <div className="font-medium">{errorMessage}</div>
         </div>
       )}
       {successMessage && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-          <span>{successMessage}</span>
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-800 flex items-center gap-3 shadow-sm">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <div className="font-medium">{successMessage}</div>
         </div>
       )}
 
-      {/* Aggregate Financial Cards */}
+      {/* Aggregate Financial KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 bg-white border border-slate-200 rounded-xl shadow-sm">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Invoiced</span>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900">
-            {currency} {totalInvoiced.toFixed(2)}
+        {/* Total Invoiced */}
+        <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Invoiced</span>
+            <div className="p-1.5 bg-slate-100 text-slate-600 rounded-lg">
+              <Receipt className="w-4 h-4" />
+            </div>
           </div>
-          <span className="text-[11px] text-slate-400 mt-1 block">Gross billed tests</span>
+          <div className="mt-3 text-2xl font-black text-slate-900 tracking-tight">
+            ₹{totalInvoiced.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <span className="text-[11px] text-slate-400 mt-1 block">Gross diagnostic fees billed</span>
         </div>
 
-        <div className="p-5 bg-white border border-emerald-200 rounded-xl shadow-sm">
-          <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Total Collections</span>
-          <div className="mt-2 text-2xl font-extrabold text-emerald-800">
-            {currency} {totalCollected.toFixed(2)}
+        {/* Collections */}
+        <div className="p-5 bg-white border border-emerald-200/90 rounded-2xl shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Collections (Cash/UPI)</span>
+            <div className="p-1.5 bg-emerald-100/80 text-emerald-700 rounded-lg">
+              <ArrowDownLeft className="w-4 h-4" />
+            </div>
           </div>
-          <span className="text-[11px] text-emerald-600 mt-1 block">
-            Refunds: -{currency} {totalRefunded.toFixed(2)}
+          <div className="mt-3 text-2xl font-black text-emerald-800 tracking-tight">
+            ₹{totalCollected.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <span className="text-[11px] text-emerald-600 mt-1 block font-medium">
+            Refunds: -₹{totalRefunded.toFixed(2)}
           </span>
         </div>
 
-        <div className="p-5 bg-white border border-amber-200 rounded-xl shadow-sm">
-          <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Outstanding Dues</span>
-          <div className="mt-2 text-2xl font-extrabold text-amber-800">
-            {currency} {totalOutstanding.toFixed(2)}
+        {/* Outstanding Dues */}
+        <div className="p-5 bg-white border border-amber-200/90 rounded-2xl shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Outstanding Dues</span>
+            <div className="p-1.5 bg-amber-100/80 text-amber-700 rounded-lg">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
           </div>
-          <span className="text-[11px] text-amber-600 mt-1 block">Receivables from patients</span>
+          <div className="mt-3 text-2xl font-black text-amber-800 tracking-tight">
+            ₹{totalOutstanding.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <span className="text-[11px] text-amber-600 mt-1 block font-medium">
+            Pending patient receivables
+          </span>
         </div>
 
-        <div className="p-5 bg-white border border-indigo-200 rounded-xl shadow-sm">
-          <span className="text-xs font-semibold text-indigo-700 uppercase tracking-wider">Net Operating Income</span>
-          <div className="mt-2 text-2xl font-extrabold text-indigo-900">
-            {currency} {netOperatingIncome.toFixed(2)}
+        {/* Net Operating Income */}
+        <div className="p-5 bg-white border border-indigo-200/90 rounded-2xl shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-indigo-700 uppercase tracking-wider">Net Cash Flow</span>
+            <div className="p-1.5 bg-indigo-100/80 text-indigo-700 rounded-lg">
+              <TrendingUp className="w-4 h-4" />
+            </div>
           </div>
-          <span className="text-[11px] text-indigo-600 mt-1 block">
-            Expenses: {currency} {totalExpenses.toFixed(2)}
+          <div className="mt-3 text-2xl font-black text-indigo-900 tracking-tight">
+            ₹{netOperatingIncome.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <span className="text-[11px] text-indigo-600 mt-1 block font-medium">
+            Expenses: ₹{totalExpenses.toFixed(2)}
           </span>
         </div>
       </div>
 
-      {/* Reconciliation Table: Invoices, Payments, Refunds */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Receipt className="w-4 h-4 text-teal-600" />
-            <h2 className="text-sm font-bold text-slate-900">Invoice Reconciliation & Refunds</h2>
+      {/* Main Section: Invoice Reconciliation */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden space-y-4 p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-teal-600" />
+              <span>Billing Ledger & Reconciliation</span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">Real-time settlement, partial collections, and refund tracking</p>
           </div>
-          <span className="text-xs text-slate-500">Source of truth: billing ledger</span>
+
+          {/* Search bar */}
+          <div className="relative max-w-xs w-full">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search by patient or invoice #..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500"
+            />
+          </div>
         </div>
 
+        {/* Filter Pills */}
+        <div className="flex flex-wrap gap-2 text-xs">
+          {(['all', 'paid', 'part_paid', 'unpaid', 'refunded'] as const).map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setStatusFilter(filter)}
+              className={`px-3 py-1 rounded-full font-semibold transition-all ${
+                statusFilter === filter
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {filter === 'all' && `All Invoices (${globalStore.invoices.length})`}
+              {filter === 'paid' && 'Paid in Full'}
+              {filter === 'part_paid' && 'Partially Paid'}
+              {filter === 'unpaid' && 'Unpaid Dues'}
+              {filter === 'refunded' && 'Refunded'}
+            </button>
+          ))}
+        </div>
+
+        {/* Invoices Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-600">
             <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
               <tr>
-                <th className="px-4 py-3">Invoice #</th>
-                <th className="px-4 py-3">Patient</th>
-                <th className="px-4 py-3">Subtotal</th>
-                <th className="px-4 py-3">Discount</th>
-                <th className="px-4 py-3">Total Amount</th>
-                <th className="px-4 py-3">Paid</th>
-                <th className="px-4 py-3">Refunded</th>
-                <th className="px-4 py-3">Balance</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <th className="px-4 py-3 font-semibold">Invoice #</th>
+                <th className="px-4 py-3 font-semibold">Patient Name</th>
+                <th className="px-4 py-3 font-semibold">Subtotal</th>
+                <th className="px-4 py-3 font-semibold">Discount</th>
+                <th className="px-4 py-3 font-semibold">Net Total</th>
+                <th className="px-4 py-3 font-semibold">Paid</th>
+                <th className="px-4 py-3 font-semibold">Balance Due</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {globalStore.invoices.map((inv) => {
+              {filteredInvoices.map((inv) => {
                 const order = globalStore.orders.find((o) => o.id === inv.order_id);
                 const netPaid = inv.amount_paid - inv.amount_refunded;
                 return (
-                  <tr key={inv.id} className="hover:bg-slate-50/80">
-                    <td className="px-4 py-3 font-mono font-medium text-slate-900">{inv.invoice_number}</td>
-                    <td className="px-4 py-3 font-medium text-slate-900">{order?.patient?.full_name}</td>
-                    <td className="px-4 py-3">{currency} {inv.subtotal.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-amber-600">
-                      {inv.discount_amount > 0 ? `-${currency} ${inv.discount_amount.toFixed(2)} (${inv.discount_percentage}%)` : '-'}
+                  <tr key={inv.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="px-4 py-3 font-mono font-bold text-slate-900">{inv.invoice_number}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-900">
+                      {order?.patient?.full_name || 'Walk-in'}
                     </td>
-                    <td className="px-4 py-3 font-bold text-slate-900">{currency} {inv.total_amount.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-emerald-700 font-medium">{currency} {inv.amount_paid.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-rose-700 font-medium">
-                      {inv.amount_refunded > 0 ? `-${currency} ${inv.amount_refunded.toFixed(2)}` : '-'}
+                    <td className="px-4 py-3 font-mono">₹{inv.subtotal.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-amber-700 font-mono">
+                      {inv.discount_amount > 0 ? `-₹${inv.discount_amount.toFixed(2)} (${inv.discount_percentage}%)` : '—'}
                     </td>
-                    <td className="px-4 py-3 font-bold text-slate-900">{currency} {inv.balance_due.toFixed(2)}</td>
+                    <td className="px-4 py-3 font-bold text-slate-900 font-mono">₹{inv.total_amount.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-emerald-700 font-bold font-mono">₹{inv.amount_paid.toFixed(2)}</td>
+                    <td className="px-4 py-3 font-mono">
+                      {inv.balance_due > 0 ? (
+                        <span className="font-bold text-rose-700">₹{inv.balance_due.toFixed(2)}</span>
+                      ) : (
+                        <span className="text-slate-400">₹0.00</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex px-2 py-0.5 rounded text-[11px] font-semibold ${
+                        className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                           inv.status === 'paid'
-                            ? 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                             : inv.status === 'part_paid'
-                            ? 'bg-amber-100 text-amber-800'
+                            ? 'bg-amber-100 text-amber-800 border border-amber-200'
                             : inv.status === 'refunded'
-                            ? 'bg-purple-100 text-purple-800'
-                            : 'bg-rose-100 text-rose-800'
+                            ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                            : 'bg-rose-100 text-rose-800 border border-rose-200'
                         }`}
                       >
-                        {inv.status.toUpperCase()}
+                        {inv.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right space-x-2">
+                      {/* Settle Due Button */}
+                      {inv.balance_due > 0 && (
+                        <button
+                          onClick={() => {
+                            setPayInvoiceId(inv.id);
+                            setPayAmount(inv.balance_due);
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all"
+                        >
+                          <IndianRupee className="w-3 h-3" />
+                          <span>Collect ₹{inv.balance_due.toFixed(0)}</span>
+                        </button>
+                      )}
+
+                      {/* Issue Refund Button */}
                       {netPaid > 0 && (
                         <button
                           onClick={() => {
@@ -331,9 +472,9 @@ export default function FinancePage() {
                             setRefundAmount(netPaid);
                             setShowRefundModal(true);
                           }}
-                          className="px-2 py-1 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded hover:bg-rose-100"
+                          className="px-2.5 py-1 text-xs font-semibold text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-all"
                         >
-                          Issue Refund
+                          Refund
                         </button>
                       )}
                     </td>
@@ -345,38 +486,42 @@ export default function FinancePage() {
         </div>
       </div>
 
-      {/* Expenses Table */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+      {/* Operational Expenses Log */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden p-6 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-teal-600" />
-            <h2 className="text-sm font-bold text-slate-900">Laboratory Operational Expenses</h2>
+            <Building className="w-4 h-4 text-teal-600" />
+            <h2 className="text-base font-bold text-slate-900">Laboratory Operational Expenses</h2>
           </div>
-          <span className="text-xs text-slate-500 font-medium">Reagents, consumables & maintenance</span>
+          <span className="text-xs text-slate-500 font-medium">Reagents, test tubes, consumables & analyzer maintenance</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-600">
             <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
               <tr>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Vendor</th>
-                <th className="px-4 py-3">Description</th>
-                <th className="px-4 py-3">Receipt Ref</th>
-                <th className="px-4 py-3 text-right">Amount</th>
+                <th className="px-4 py-3 font-semibold">Date</th>
+                <th className="px-4 py-3 font-semibold">Expense Category</th>
+                <th className="px-4 py-3 font-semibold">Vendor / Supplier</th>
+                <th className="px-4 py-3 font-semibold">Description</th>
+                <th className="px-4 py-3 font-semibold">Receipt Ref</th>
+                <th className="px-4 py-3 font-semibold text-right">Amount</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {globalStore.expenses.map((exp) => (
-                <tr key={exp.id} className="hover:bg-slate-50/80">
-                  <td className="px-4 py-3 text-slate-500">{exp.expense_date}</td>
-                  <td className="px-4 py-3 capitalize font-semibold text-slate-800">{exp.category}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900">{exp.vendor}</td>
-                  <td className="px-4 py-3">{exp.description}</td>
-                  <td className="px-4 py-3 font-mono text-[11px] text-slate-500">{exp.receipt_reference || '-'}</td>
-                  <td className="px-4 py-3 text-right font-bold text-slate-900">
-                    {currency} {exp.amount.toFixed(2)}
+                <tr key={exp.id} className="hover:bg-slate-50/70 transition-colors">
+                  <td className="px-4 py-3 text-slate-500 font-mono">{exp.expense_date}</td>
+                  <td className="px-4 py-3">
+                    <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 capitalize">
+                      {exp.category}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 font-bold text-slate-900">{exp.vendor}</td>
+                  <td className="px-4 py-3 text-slate-700">{exp.description}</td>
+                  <td className="px-4 py-3 font-mono text-[11px] text-slate-400">{exp.receipt_reference || '—'}</td>
+                  <td className="px-4 py-3 text-right font-black text-slate-900 font-mono">
+                    ₹{exp.amount.toFixed(2)}
                   </td>
                 </tr>
               ))}
@@ -385,24 +530,123 @@ export default function FinancePage() {
         </div>
       </div>
 
-      {/* MODAL 1: Issue Refund (Admin Only) */}
+      {/* MODAL 1: Quick Pay Settlement */}
+      {payInvoiceId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-100">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <IndianRupee className="w-4 h-4 text-emerald-600" />
+                <span>Collect Balance Due</span>
+              </h2>
+              <button onClick={() => setPayInvoiceId(null)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleQuickPay} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Amount to Collect (₹) *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="1"
+                  required
+                  value={payAmount}
+                  onChange={(e) => setPayAmount(Number(e.target.value))}
+                  className="w-full px-3 py-2 text-sm font-bold border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-2">
+                  Payment Method *
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPayMethod('upi')}
+                    className={`p-2.5 rounded-xl border text-center transition-all ${
+                      payMethod === 'upi'
+                        ? 'border-teal-600 bg-teal-50 text-teal-800 font-bold'
+                        : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <QrCode className="w-4 h-4 mx-auto mb-1 text-teal-600" />
+                    <span className="text-xs">UPI / QR</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPayMethod('cash')}
+                    className={`p-2.5 rounded-xl border text-center transition-all ${
+                      payMethod === 'cash'
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-800 font-bold'
+                        : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Banknote className="w-4 h-4 mx-auto mb-1 text-emerald-600" />
+                    <span className="text-xs">Cash</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPayMethod('card')}
+                    className={`p-2.5 rounded-xl border text-center transition-all ${
+                      payMethod === 'card'
+                        ? 'border-blue-600 bg-blue-50 text-blue-800 font-bold'
+                        : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <CreditCard className="w-4 h-4 mx-auto mb-1 text-blue-600" />
+                    <span className="text-xs">Card</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setPayInvoiceId(null)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Confirm Receipt</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: Issue Controlled Refund */}
       {showRefundModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <h2 className="text-base font-bold text-rose-700">Issue Controlled Refund</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-rose-100">
+            <div className="flex items-center justify-between pb-3 border-b border-rose-100">
+              <h2 className="text-base font-bold text-rose-800">Issue Controlled Refund</h2>
               <button onClick={() => setShowRefundModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-600">
-              Refunds are strictly audited, retain original payment records, and adjust the balance due.
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Patient refunds are recorded on the billing ledger, preserve initial payment history, and auto-adjust net balances.
             </p>
 
-            <form onSubmit={handleRecordRefund} className="space-y-3">
+            <form onSubmit={handleRecordRefund} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Refund Amount ({currency}) *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Refund Amount (₹) *
+                </label>
                 <input
                   type="number"
                   step="0.01"
@@ -410,33 +654,35 @@ export default function FinancePage() {
                   required
                   value={refundAmount}
                   onChange={(e) => setRefundAmount(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 text-xs font-bold font-mono border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Mandatory Reason *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Mandatory Justification Reason *
+                </label>
                 <textarea
                   required
                   rows={2}
-                  placeholder="e.g. Test cancelled prior to analysis / duplicate payment adjustment"
+                  placeholder="e.g. Duplicate payment adjustment / test cancelled prior to blood collection"
                   value={refundReason}
                   onChange={(e) => setRefundReason(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowRefundModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-md transition-all"
                 >
                   Authorize Refund
                 </button>
@@ -446,55 +692,56 @@ export default function FinancePage() {
         </div>
       )}
 
-      {/* MODAL 2: Record Expense */}
+      {/* MODAL 3: Record Expense */}
       {showExpenseModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <h2 className="text-base font-bold text-slate-900">Record Operational Expense</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-100">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h2 className="text-base font-bold text-slate-900">Record Lab Expense</h2>
               <button onClick={() => setShowExpenseModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleRecordExpense} className="space-y-3">
+            <form onSubmit={handleRecordExpense} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Category *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Expense Category *</label>
                 <select
                   value={expCategory}
                   onChange={(e) => setExpCategory(e.target.value as any)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white font-medium"
                 >
-                  <option value="reagents">Reagents</option>
-                  <option value="consumables">Consumables / Tubes</option>
-                  <option value="utilities">Utilities</option>
-                  <option value="maintenance">Analyzer Maintenance</option>
-                  <option value="other">Other</option>
+                  <option value="reagents">Reagents (Analyzer reagents & controls)</option>
+                  <option value="consumables">Consumables (Vacutainers, needles, gloves)</option>
+                  <option value="utilities">Utilities (Electricity, Internet)</option>
+                  <option value="maintenance">Analyzer Maintenance & Servicing</option>
+                  <option value="other">Other Operational Expenses</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Amount ({currency}) *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Amount (₹) *</label>
                 <input
                   type="number"
                   step="0.01"
                   min="0.01"
                   required
-                  value={expAmount}
+                  placeholder="0.00"
+                  value={expAmount || ''}
                   onChange={(e) => setExpAmount(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-xs font-bold font-mono border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Vendor *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Vendor / Payee *</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Bio-Chem Supplies LLC"
+                  placeholder="e.g. Erba Diagnostics Hyderabad / Sri Sai Surgicals"
                   value={expVendor}
                   onChange={(e) => setExpVendor(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
@@ -503,35 +750,35 @@ export default function FinancePage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. CBC Calibrator pack"
+                  placeholder="e.g. CBC Diluent pack & Lyse reagent"
                   value={expDesc}
                   onChange={(e) => setExpDesc(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Receipt Reference</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Invoice / Receipt Bill #</label>
                 <input
                   type="text"
-                  placeholder="e.g. INV-99014"
+                  placeholder="e.g. BILL-44910"
                   value={expRef}
                   onChange={(e) => setExpRef(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowExpenseModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-teal-600 rounded-lg hover:bg-teal-700"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-md transition-all"
                 >
                   Save Expense
                 </button>

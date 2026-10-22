@@ -60,6 +60,7 @@ export interface ReviewerScope {
   id: string;
   staff_id: string;
   credentials_title: string;
+  medical_license_number?: string;
   verified_scopes: string[]; // e.g. ['HEM', 'BIO', 'MICRO', 'ALL']
   valid_from: string; // YYYY-MM-DD
   valid_to: string; // YYYY-MM-DD
