@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { globalStore } from '@/lib/store';
+import { downloadReportPdfBlob } from '@/lib/pdf/report-generator';
 import {
   ArrowLeft,
   AlertTriangle,
@@ -23,6 +24,7 @@ import {
   AlertCircle,
   FileText,
   BadgeAlert,
+  Download,
 } from 'lucide-react';
 
 export default function OrderResultEntryPage({
@@ -284,6 +286,23 @@ export default function OrderResultEntryPage({
 
           {/* Quick Header Action Buttons */}
           <div className="flex items-center gap-2 self-start lg:self-auto">
+            {isAuthorized && order.report_versions[0] && (
+              <button
+                type="button"
+                onClick={() =>
+                  downloadReportPdfBlob(
+                    order.report_versions[0].report_snapshot,
+                    `${order.report_versions[0].report_number}.pdf`,
+                    { isSuperseded: order.report_versions[0].status === 'superseded' }
+                  )
+                }
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all"
+                title="Download finalized clinical A4 report"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download Report PDF</span>
+              </button>
+            )}
             <button
               onClick={handleSaveDrafts}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"

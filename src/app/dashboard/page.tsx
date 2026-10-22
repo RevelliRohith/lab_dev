@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { globalStore } from '@/lib/store';
+import { downloadReportPdfBlob } from '@/lib/pdf/report-generator';
 import {
   Users,
   FlaskConical,
@@ -17,6 +18,7 @@ import {
   Activity,
   CheckCircle2,
   Sparkles,
+  Download,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -371,10 +373,25 @@ export default function DashboardPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3.5 text-right">
+                    <td className="px-4 py-3.5 text-right space-x-1.5">
+                      {latestRep && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            downloadReportPdfBlob(latestRep.report_snapshot, `${latestRep.report_number}.pdf`, {
+                              isSuperseded: latestRep.status === 'superseded',
+                            })
+                          }
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors"
+                          title="Download official A4 PDF report"
+                        >
+                          <Download className="w-3 h-3" />
+                          <span>PDF</span>
+                        </button>
+                      )}
                       <Link
                         href={`/tests/${ord.id}`}
-                        className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition-colors"
                       >
                         <span>Manage</span>
                         <ArrowRight className="w-3 h-3" />

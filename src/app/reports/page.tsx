@@ -5,6 +5,11 @@ import Link from 'next/link';
 import { globalStore } from '@/lib/store';
 import { Order, ReportVersion } from '@/lib/types';
 import {
+  downloadReportPdfBlob,
+  openReportPdfInNewTab,
+  buildDraftSnapshot,
+} from '@/lib/pdf/report-generator';
+import {
   FileCheck2,
   FileText,
   AlertTriangle,
@@ -51,6 +56,51 @@ export default function ReportsManagementPage() {
 
   const [actionError, setActionError] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<string | null>(null);
+
+  // Handle Client-side PDF Download
+  const handleDownloadPdf = async (rep: ReportVersion) => {
+    setActionError('');
+    setIsGeneratingPdf(rep.id);
+    try {
+      await downloadReportPdfBlob(rep.report_snapshot, `${rep.report_number}.pdf`, {
+        isSuperseded: rep.status === 'superseded',
+      });
+    } catch (err: unknown) {
+      setActionError(`Error generating PDF: ${(err as Error).message}`);
+    } finally {
+      setIsGeneratingPdf(null);
+    }
+  };
+
+  // Handle Client-side PDF View in new tab
+  const handleViewPdf = async (rep: ReportVersion) => {
+    setActionError('');
+    setIsGeneratingPdf(rep.id);
+    try {
+      await openReportPdfInNewTab(rep.report_snapshot, {
+        isSuperseded: rep.status === 'superseded',
+      });
+    } catch (err: unknown) {
+      setActionError(`Error opening PDF: ${(err as Error).message}`);
+    } finally {
+      setIsGeneratingPdf(null);
+    }
+  };
+
+  // Handle Draft Preview in new tab
+  const handlePreviewDraft = async (ord: Order) => {
+    setActionError('');
+    setIsGeneratingPdf(ord.id);
+    try {
+      const draftSnapshot = buildDraftSnapshot(ord, globalStore.lab);
+      await openReportPdfInNewTab(draftSnapshot, { isDraftPreview: true });
+    } catch (err: unknown) {
+      setActionError(`Error generating draft preview: ${(err as Error).message}`);
+    } finally {
+      setIsGeneratingPdf(null);
+    }
+  };
 
   useEffect(() => {
     const handleStaffChange = () => setTick((t) => t + 1);
@@ -390,15 +440,15 @@ export default function ReportsManagementPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
                       <div className="flex items-center gap-2">
                         {/* Preview Draft PDF */}
-                        <a
-                          href={`/api/reports/${ord.id}/pdf?draft=true`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                        <button
+                          type="button"
+                          onClick={() => handlePreviewDraft(ord)}
+                          disabled={isGeneratingPdf === ord.id}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all disabled:opacity-50"
                         >
                           <Eye className="w-3.5 h-3.5 text-slate-500" />
-                          <span>Preview Clinical Draft PDF</span>
-                        </a>
+                          <span>{isGeneratingPdf === ord.id ? 'Generating Preview...' : 'Preview Clinical Draft PDF'}</span>
+                        </button>
 
                         <Link
                           href={`/tests/${ord.id}`}
@@ -519,16 +569,29 @@ export default function ReportsManagementPage() {
                         {rep.released_at ? new Date(rep.released_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pending'}
                       </td>
                       <td className="px-4 py-3 text-right space-x-2">
+                        {/* View / Print in Tab */}
+                        <button
+                          type="button"
+                          onClick={() => handleViewPdf(rep)}
+                          disabled={isGeneratingPdf === rep.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all disabled:opacity-50"
+                          title="Open PDF in new tab to print"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-slate-600" />
+                          <span>View / Print</span>
+                        </button>
+
                         {/* Download A4 PDF */}
-                        <a
-                          href={`/api/reports/${rep.id}/pdf`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition-all"
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadPdf(rep)}
+                          disabled={isGeneratingPdf === rep.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition-all disabled:opacity-50"
+                          title="Download signed A4 PDF report"
                         >
                           <Download className="w-3.5 h-3.5" />
-                          <span>Download A4 PDF</span>
-                        </a>
+                          <span>{isGeneratingPdf === rep.id ? 'Generating...' : 'Download A4 PDF'}</span>
+                        </button>
 
                         {/* Issue Amendment if released and active reviewer */}
                         {rep.status === 'released' && isReviewer && (
