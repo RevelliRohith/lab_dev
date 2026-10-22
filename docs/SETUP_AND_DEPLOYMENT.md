@@ -63,7 +63,7 @@ npm test
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to open the application.
+Visit [http://localhost:3005](http://localhost:3005) to open the application.
 
 ---
 

@@ -51,7 +51,7 @@ npm run build
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to access the system. The top-bar includes a role profile switcher allowing instant testing of all three roles and their permission boundaries.
+Visit [http://localhost:3005](http://localhost:3005) to access the system. The top-bar includes a role profile switcher allowing instant testing of all three roles and their permission boundaries.
 
 ---
 
