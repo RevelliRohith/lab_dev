@@ -458,7 +458,7 @@ function TestsContent() {
                           <td className="px-4 py-2.5 capitalize">{p.result_type}</td>
                           <td className="px-4 py-2.5 font-semibold text-[#172B4D]">{p.unit || '-'}</td>
                           <td className="px-4 py-2.5 text-[#1565D8] font-medium">
-                            Consultant Pathologist Verified
+                            Clinical Director Verified
                           </td>
                         </tr>
                       ))}

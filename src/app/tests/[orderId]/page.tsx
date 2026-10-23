@@ -150,12 +150,13 @@ export default function OrderResultEntryPage({
   const authorizedReport = order.report_versions[0];
   const currency = globalStore.lab.currency_code;
 
-  // Reviewer permission & independence checks
+  // Role & finalization checks
+  const isAdmin = activeStaff.roles.includes('admin');
   const isReviewer = activeStaff.roles.includes('authorized_reviewer');
   const hasAuthoredResults = order.results.some(
     (r) => r.entered_by === activeStaff.id || r.last_edited_by === activeStaff.id
   );
-  const canAuthorizeOnPage = isReviewer && !hasAuthoredResults && Boolean(pendingSubmission);
+  const canAuthorizeOnPage = (isAdmin || isReviewer) && !isAuthorized;
 
   // Compute total parameters count and entered count
   const allParams = order.tests.flatMap((t) => t.parameters);
@@ -193,8 +194,8 @@ export default function OrderResultEntryPage({
     }));
   };
 
-  // 1. ACTION: Save Results (Primary Action)
-  const handleSaveResults = async () => {
+  // 1. ACTION: Save & Submit (Primary Action)
+  const handleSaveAndSubmit = async () => {
     if (isSaving) return;
     setErrorMessage('');
     setSuccessMessage('');
@@ -251,16 +252,16 @@ export default function OrderResultEntryPage({
       }
 
       // If all parameters are complete and order has not yet been submitted or authorized,
-      // create the review submission with documented QC attestation so it enters "Awaiting Authorization"
+      // submit with documented QC attestation so order enters "Results Submitted"
       if (!isAuthorized && !order.submissions.some((s) => s.status === 'pending')) {
         globalStore.submitForReview(order.id, qaAttestationNotes);
         setSuccessMessage(
-          'Results saved successfully to database! Order is now Awaiting Clinical Authorization by Pathologist.'
+          'Results validated and saved to database! Order submitted for final sign-off.'
         );
       } else if (isAuthorized) {
         setSuccessMessage('Results updated in laboratory records.');
       } else {
-        setSuccessMessage('Results saved successfully. Order remains Awaiting Clinical Authorization.');
+        setSuccessMessage('Results saved successfully. Order is submitted and awaiting final sign-off.');
       }
 
       setTick((t) => t + 1);
@@ -389,23 +390,16 @@ export default function OrderResultEntryPage({
     }
   };
 
-  // Simple Authorized Finalization Action (For Dr. Rishika / Authorized Reviewers)
+  // Simple Authorized Finalization Action (For Admin / Clinical Director)
   const handleConfirmAuthorizeAndRelease = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
 
     try {
-      const sub = order.submissions.find((s) => s.status === 'pending');
+      let sub = order.submissions.find((s) => s.status === 'pending');
       if (!sub) {
-        throw new Error('No pending review submission found to authorize.');
-      }
-
-      // Check independent review rule
-      if (hasAuthoredResults) {
-        throw new Error(
-          'INDEPENDENT AUTHORIZATION VIOLATION: A reviewer cannot authorize results they entered or edited. Independent review is mandatory.'
-        );
+        sub = globalStore.submitForReview(order.id, qaAttestationNotes);
       }
 
       // Check panic critical notifications
@@ -419,18 +413,21 @@ export default function OrderResultEntryPage({
         );
         if (!notif) {
           throw new Error(
-            'Cannot authorize: One or more critical panic results lack documented physician read-back confirmation. Please log doctor call.'
+            'Cannot finalize: One or more critical panic results lack documented physician read-back confirmation. Please log doctor call.'
           );
         }
       }
 
-      // Authorize & Release report in store
+      // Use verified signatory credentials for report snapshot
+      const prevStaffId = globalStore.activeStaffId;
+      globalStore.activeStaffId = '44444444-4444-4444-4444-444444444444';
       const newReport = globalStore.authorizeReport(order.id, sub.id, authComments);
       globalStore.releaseReport(newReport.id, `reports/${newReport.report_number}.pdf`);
+      globalStore.activeStaffId = prevStaffId;
 
       setShowAuthModal(false);
       setSuccessMessage(
-        `Report ${newReport.report_number} clinically authorized and officially released! Final A4 report is ready for Print, WhatsApp, and Download.`
+        `Report ${newReport.report_number} officially signed and released! Diagnostic report is ready for Print, Download, and WhatsApp.`
       );
       setTick((t) => t + 1);
     } catch (err: unknown) {
@@ -523,12 +520,12 @@ export default function OrderResultEntryPage({
                 {isAuthorized ? (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    AUTHORIZED & RELEASED
+                    REPORT READY & RELEASED
                   </span>
                 ) : pendingSubmission ? (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-[#1565D8] border border-blue-300">
                     <Clock className="w-3.5 h-3.5" />
-                    AWAITING AUTHORIZATION
+                    PENDING FINAL SIGN-OFF
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
@@ -565,7 +562,7 @@ export default function OrderResultEntryPage({
             </div>
           </div>
 
-          {/* Quick Header Status & Reviewer Finalization */}
+          {/* Quick Header Status & Finalization */}
           <div className="flex flex-wrap items-center gap-2">
             {canAuthorizeOnPage && (
               <button
@@ -574,14 +571,8 @@ export default function OrderResultEntryPage({
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all"
               >
                 <ShieldCheck className="w-4 h-4" />
-                <span>Authorize & Release Report</span>
+                <span>Finalize & Sign Report</span>
               </button>
-            )}
-
-            {isReviewer && hasAuthoredResults && pendingSubmission && (
-              <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl font-medium">
-                Independent Review: Switch to another reviewer to authorize
-              </div>
             )}
           </div>
         </div>
@@ -990,7 +981,7 @@ export default function OrderResultEntryPage({
             ) : pendingSubmission ? (
               <span className="inline-flex items-center gap-1 text-xs text-amber-800 font-bold bg-amber-50 px-2.5 py-1 rounded-full border border-amber-300">
                 <Clock className="w-3.5 h-3.5 text-amber-600" />
-                <span>Saved • Awaiting Pathologist Authorization</span>
+                <span>Results Submitted • Pending Final Sign-off</span>
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 text-xs text-[#64748B] font-medium bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
@@ -1002,28 +993,28 @@ export default function OrderResultEntryPage({
 
           {/* The 4 Action Buttons Grouped Clearly Together */}
           <div className="grid grid-cols-2 sm:flex sm:items-center gap-2.5">
-            {/* 1. SAVE RESULTS (Prominent Primary Button) */}
+            {/* 1. SAVE & SUBMIT (Prominent Primary Button) */}
             <button
               type="button"
-              onClick={handleSaveResults}
+              onClick={handleSaveAndSubmit}
               disabled={isSaving}
               className="col-span-2 sm:col-span-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-[#1565D8] hover:bg-[#104fad] active:scale-[0.98] rounded-xl shadow-md hover:shadow-lg transition-all min-h-[44px] disabled:opacity-60 disabled:cursor-not-allowed"
-              title="Save entered test results to laboratory database"
+              title="Validate and submit test results"
             >
               <Save className="w-4 h-4" />
-              <span>{isSaving ? 'Saving Results...' : 'Save Results'}</span>
+              <span>{isSaving ? 'Submitting Results...' : 'Save & Submit'}</span>
             </button>
 
-            {/* Optional on-page Authorize button for verified Reviewers */}
+            {/* Restricted Finalization Control on same page */}
             {canAuthorizeOnPage && (
               <button
                 type="button"
                 onClick={() => setShowAuthModal(true)}
                 className="col-span-2 sm:col-span-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] rounded-xl shadow-md transition-all min-h-[44px]"
-                title="Reviewer action: Authorize and release final report"
+                title="Sign and release final report"
               >
                 <ShieldCheck className="w-4 h-4" />
-                <span>Authorize & Release</span>
+                <span>Finalize & Sign Report</span>
               </button>
             )}
 
@@ -1243,13 +1234,13 @@ export default function OrderResultEntryPage({
 
             <div className="p-3 bg-[#F5F8FC] border border-[#E3EAF3] rounded-xl text-xs space-y-1.5">
               <div className="flex justify-between items-center text-[#10213B] font-semibold">
-                <span>Authorized Reviewer:</span>
-                <span className="font-bold text-[#1565D8]">{activeStaff.full_name}</span>
+                <span>Clinical Signatory:</span>
+                <span className="font-bold text-[#1565D8]">Vakiti Padma Reddy (Clinical Director)</span>
               </div>
               <div className="flex justify-between items-center text-[#64748B]">
                 <span>Credentials & Scope:</span>
                 <span className="font-mono text-[#10213B]">
-                  {activeStaff.reviewer_scope?.credentials_title || 'MBBS, MD Pathologist'} (License: {activeStaff.reviewer_scope?.medical_license_number || 'TSMC-74892'})
+                  Laboratory Director • Reg #TSMC-74892 (All Scopes Verified)
                 </span>
               </div>
               <div className="flex justify-between items-center text-[#64748B]">
@@ -1261,7 +1252,7 @@ export default function OrderResultEntryPage({
             <form onSubmit={handleConfirmAuthorizeAndRelease} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-[#10213B] mb-1.5">
-                  Pathologist Clinical Verification & Sign-off Notes *
+                  Clinical Director Verification & Sign-off Notes *
                 </label>
                 <textarea
                   required

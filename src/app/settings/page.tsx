@@ -250,7 +250,7 @@ export default function SettingsAndStaffPage() {
           }`}
         >
           <FileBadge className="w-4 h-4" />
-          <span>Reviewer Credentials</span>
+          <span>Director & Medical Licenses</span>
         </button>
 
         <button

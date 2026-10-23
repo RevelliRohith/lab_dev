@@ -41,17 +41,20 @@ export default function DashboardPage() {
 
   // Operational Counts (driven by real database/store data)
   const todayOrders = globalStore.orders.length;
-  const specimensAwaiting = globalStore.orders.reduce((acc, o) => {
-    return acc + o.specimens.filter((s) => s.status === 'awaiting_collection').length;
+  const samplesCollected = globalStore.orders.reduce((acc, o) => {
+    return (
+      acc +
+      o.specimens.filter((s) => ['collected', 'received', 'completed'].includes(s.status)).length
+    );
   }, 0);
-  const resultsAwaiting = globalStore.orders.filter((o) => {
-    const hasReceived = o.specimens.some((s) => ['received', 'completed'].includes(s.status));
-    const isCompleted = o.submissions.some((s) => ['authorized', 'released'].includes(s.status));
-    return hasReceived && !isCompleted;
+  const resultsPending = globalStore.orders.filter((o) => {
+    const hasSpecimen = o.specimens.some((s) =>
+      ['collected', 'received', 'completed'].includes(s.status)
+    );
+    const isReleased = o.report_versions.length > 0;
+    return hasSpecimen && !isReleased;
   }).length;
-  const reportsAwaiting = globalStore.orders.filter((o) =>
-    o.submissions.some((s) => s.status === 'pending')
-  ).length;
+  const reportsReady = globalStore.orders.filter((o) => o.report_versions.length > 0).length;
 
   // Financial aggregates (Admin only)
   const totalBilled = globalStore.invoices.reduce((acc, i) => acc + i.total_amount, 0);
@@ -135,27 +138,27 @@ export default function DashboardPage() {
           </p>
         </Link>
 
-        {/* Card 2: Awaiting Specimen Collection */}
+        {/* Card 2: Samples Collected */}
         <Link
           href="/tests?tab=specimens"
-          className="bg-white p-5 rounded-2xl border border-amber-200/90 shadow-[0_1px_3px_rgba(16,33,59,0.04)] hover:border-amber-400 hover:shadow-[0_4px_12px_rgba(245,158,11,0.08)] transition-all group"
+          className="bg-white p-5 rounded-2xl border border-teal-200/90 shadow-[0_1px_3px_rgba(16,33,59,0.04)] hover:border-teal-400 hover:shadow-[0_4px_12px_rgba(13,148,136,0.08)] transition-all group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">
-              Samples Awaiting
+            <span className="text-xs font-bold text-teal-800 uppercase tracking-wider">
+              Samples Collected
             </span>
-            <span className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
+            <span className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-colors">
               <FlaskConical className="w-5 h-5" />
             </span>
           </div>
-          <div className="mt-3 text-3xl font-extrabold text-amber-900">{specimensAwaiting}</div>
-          <p className="mt-1 text-xs text-amber-700 flex items-center gap-1 font-medium">
-            <span>Pending collection / intake</span>
-            <ArrowRight className="w-3 h-3 text-amber-600 group-hover:translate-x-1 transition-transform" />
+          <div className="mt-3 text-3xl font-extrabold text-teal-900">{samplesCollected}</div>
+          <p className="mt-1 text-xs text-teal-700 flex items-center gap-1 font-medium">
+            <span>Collected / received in laboratory</span>
+            <ArrowRight className="w-3 h-3 text-teal-600 group-hover:translate-x-1 transition-transform" />
           </p>
         </Link>
 
-        {/* Card 3: Results Awaiting Entry */}
+        {/* Card 3: Results Pending */}
         <Link
           href="/tests?tab=results"
           className="bg-white p-5 rounded-2xl border border-indigo-200/90 shadow-[0_1px_3px_rgba(16,33,59,0.04)] hover:border-indigo-400 hover:shadow-[0_4px_12px_rgba(99,102,241,0.08)] transition-all group"
@@ -168,30 +171,30 @@ export default function DashboardPage() {
               <Clock className="w-5 h-5" />
             </span>
           </div>
-          <div className="mt-3 text-3xl font-extrabold text-indigo-900">{resultsAwaiting}</div>
+          <div className="mt-3 text-3xl font-extrabold text-indigo-900">{resultsPending}</div>
           <p className="mt-1 text-xs text-indigo-700 flex items-center gap-1 font-medium">
-            <span>Specimens received in lab</span>
+            <span>Awaiting result entry & submission</span>
             <ArrowRight className="w-3 h-3 text-indigo-600 group-hover:translate-x-1 transition-transform" />
           </p>
         </Link>
 
-        {/* Card 4: Reports Ready / Awaiting Review */}
+        {/* Card 4: Reports Ready */}
         <Link
           href="/reports"
-          className="bg-white p-5 rounded-2xl border border-teal-200/90 shadow-[0_1px_3px_rgba(16,33,59,0.04)] hover:border-teal-400 hover:shadow-[0_4px_12px_rgba(13,148,136,0.08)] transition-all group"
+          className="bg-white p-5 rounded-2xl border border-emerald-200/90 shadow-[0_1px_3px_rgba(16,33,59,0.04)] hover:border-emerald-400 hover:shadow-[0_4px_12px_rgba(16,185,129,0.08)] transition-all group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-teal-800 uppercase tracking-wider">
-              Reports Ready / Review
+            <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
+              Reports Ready
             </span>
-            <span className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-colors">
+            <span className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               <FileCheck2 className="w-5 h-5" />
             </span>
           </div>
-          <div className="mt-3 text-3xl font-extrabold text-teal-900">{reportsAwaiting}</div>
-          <p className="mt-1 text-xs text-teal-700 flex items-center gap-1 font-medium">
-            <span>Submitted for review / release</span>
-            <ArrowRight className="w-3 h-3 text-teal-600 group-hover:translate-x-1 transition-transform" />
+          <div className="mt-3 text-3xl font-extrabold text-emerald-900">{reportsReady}</div>
+          <p className="mt-1 text-xs text-emerald-700 flex items-center gap-1 font-medium">
+            <span>Official reports ready to print & share</span>
+            <ArrowRight className="w-3 h-3 text-emerald-600 group-hover:translate-x-1 transition-transform" />
           </p>
         </Link>
       </div>
@@ -276,7 +279,7 @@ export default function DashboardPage() {
             <span className="text-xs font-bold text-[#10213B] group-hover:text-teal-800">
               View Reports
             </span>
-            <span className="text-[10px] text-[#64748B] mt-0.5">Doctor review queue</span>
+            <span className="text-[10px] text-[#64748B] mt-0.5">Diagnostic reports</span>
           </Link>
 
           {/* Tile 6: Print Report */}

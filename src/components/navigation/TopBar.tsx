@@ -100,7 +100,7 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
     }
   };
 
-  // Simplified Operational Role Display (Admin vs. Lab Staff)
+  // Exactly Two Operational Roles: Admin and Staff
   const getPrimaryRoleBadge = (roles: string[]) => {
     if (roles.includes('admin')) {
       return (
@@ -110,17 +110,10 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
         </span>
       );
     }
-    if (roles.includes('lab_staff')) {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-teal-50 text-[#0D9488] border border-teal-200">
-          <FlaskConical className="w-3 h-3 text-[#0D9488]" />
-          Lab Staff
-        </span>
-      );
-    }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-        Reviewer
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-teal-50 text-[#0D9488] border border-teal-200">
+        <FlaskConical className="w-3 h-3 text-[#0D9488]" />
+        Staff
       </span>
     );
   };
@@ -272,7 +265,7 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
               </div>
             </div>
 
-            {/* Quick dropdown select to change active user */}
+            {/* Quick dropdown select to change active user: ONLY Admin and Staff */}
             <select
               value={currentStaff.id}
               onChange={(e) => handleSwitchStaff(e.target.value)}
@@ -280,13 +273,13 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
               aria-label="Switch active staff member"
             >
               {globalStore.staff
-                .filter((s) => s.status === 'active')
+                .filter(
+                  (s) =>
+                    s.status === 'active' &&
+                    (s.roles.includes('admin') || s.roles.includes('lab_staff'))
+                )
                 .map((s) => {
-                  const roleLabel = s.roles.includes('admin')
-                    ? 'Admin'
-                    : s.roles.includes('authorized_reviewer')
-                    ? 'Reviewer (Dr. Rishika)'
-                    : 'Lab Staff (Rishi)';
+                  const roleLabel = s.roles.includes('admin') ? 'Admin' : 'Staff';
                   return (
                     <option key={s.id} value={s.id}>
                       {s.full_name.split('(')[0].trim()} — {roleLabel}
