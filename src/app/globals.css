@@ -3,42 +3,132 @@
 @tailwind utilities;
 
 :root {
-  --background: #f5f8fc;
-  --foreground: #172b4d;
+  --background: #eaf2ff;
+  --foreground: #12234a;
+  --primary-blue: #2563eb;
+  --electric-blue: #3b82f6;
+  --soft-cyan: #7dd3fc;
+  --lavender: #a78bfa;
+  --mint-green: #6ee7b7;
+  --glass-surface: rgba(255, 255, 255, 0.52);
+  --glass-border: rgba(255, 255, 255, 0.72);
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
+  color: #12234a;
+  background-color: #eaf2ff;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(167, 139, 250, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(125, 211, 252, 0.22) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(255, 255, 255, 0.6) 0px, transparent 100%),
+    radial-gradient(at 0% 100%, rgba(110, 231, 183, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.10) 0px, transparent 50%);
+  background-attachment: fixed;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Inter", sans-serif;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Ensure no page-wide horizontal scroll at 360px */
+/* Ensure no page-wide horizontal scroll at any mobile width */
 html, body {
   overflow-x: hidden;
   max-width: 100vw;
 }
 
-/* Accessible focus outline in medical blue */
+/* Accessible focus outline */
 *:focus-visible {
-  outline: 2px solid #1565d8;
+  outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
-/* Custom subtle scrollbar */
+/* iOS-Inspired Liquid Glass Utility Classes */
+@layer components {
+  /* Translucent frosted glass panel */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.56);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.06), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  /* Slightly more opaque glass card for content readability */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(16px) saturate(175%);
+    -webkit-backdrop-filter: blur(16px) saturate(175%);
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    box-shadow: 0 4px 20px 0 rgba(37, 99, 235, 0.05), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+  }
+
+  /* Glass card with interactive lift */
+  .glass-card-hover {
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glass-card-hover:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 12px 30px -4px rgba(37, 99, 235, 0.12), inset 0 1px 1px 0 rgba(255, 255, 255, 1);
+  }
+
+  /* Glass pill badges and small indicators */
+  .glass-pill {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.04);
+  }
+
+  /* Glass input fields */
+  .glass-input {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    color: #12234a;
+    transition: all 0.2s ease;
+  }
+  .glass-input:focus {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), inset 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+
+  /* Floating active glow on buttons / tabs */
+  .glow-blue {
+    box-shadow: 0 4px 18px 0 rgba(37, 99, 235, 0.32);
+  }
+  .glow-purple {
+    box-shadow: 0 4px 18px 0 rgba(167, 139, 250, 0.32);
+  }
+}
+
+/* Custom subtle glass scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: rgba(234, 242, 255, 0.5);
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: rgba(167, 139, 250, 0.3);
+  border-radius: 9999px;
+  backdrop-filter: blur(4px);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(59, 130, 246, 0.5);
+}
+
+/* Support for prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

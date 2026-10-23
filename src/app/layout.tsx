@@ -16,15 +16,20 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className="bg-[#F5F8FC] text-[#172B4D] antialiased min-h-screen font-sans selection:bg-blue-100 selection:text-blue-900">
+      <body className="antialiased min-h-screen font-sans selection:bg-blue-200 selection:text-[#12234A] text-[#12234A]">
+        {/* Floating Glass Navigation */}
         <TopBar
           onMenuToggle={() => setMobileMenuOpen(true)}
           onStaffChange={() => setRefreshTick((t) => t + 1)}
         />
         <MobileNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
-        <div className="flex">
+
+        <div className="flex min-h-screen">
+          {/* Floating Glass Sidebar (Desktop) */}
           <Sidebar />
-          <main className="flex-1 md:pl-64 min-h-[calc(100vh-4.25rem)] p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full">
+
+          {/* Main View Area with Floating Offsets */}
+          <main className="flex-1 md:pl-71 pt-23 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full transition-all">
             {children}
           </main>
         </div>

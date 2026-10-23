@@ -3,20 +3,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { globalStore } from '@/lib/store';
 import { Patient } from '@/lib/types';
 import {
-  FlaskConical,
   Search,
   MapPin,
   Menu,
   ChevronDown,
-  User,
   Clock,
-  Phone,
-  Check,
   Shield,
+  FlaskConical,
   X,
+  Sparkles,
 } from 'lucide-react';
 
 interface TopBarProps {
@@ -32,6 +31,7 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
   const [searchResults, setSearchResults] = useState<Patient[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const lab = globalStore.lab;
 
   useEffect(() => {
@@ -51,6 +51,18 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
     updateTime();
     const interval = setInterval(updateTime, 10000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Keyboard shortcut Ctrl+K / Cmd+K to focus search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   // Close search dropdown on click outside
@@ -104,59 +116,66 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
   const getPrimaryRoleBadge = (roles: string[]) => {
     if (roles.includes('admin')) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-[#1565D8] border border-blue-200">
-          <Shield className="w-3 h-3 text-[#1565D8]" />
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100/80 text-[#2563EB] border border-blue-200/60">
+          <Shield className="w-2.5 h-2.5 text-[#2563EB]" />
           Admin
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-teal-50 text-[#0D9488] border border-teal-200">
-        <FlaskConical className="w-3 h-3 text-[#0D9488]" />
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100/80 text-[#0D9488] border border-teal-200/60">
+        <FlaskConical className="w-2.5 h-2.5 text-[#0D9488]" />
         Staff
       </span>
     );
   };
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between h-17 px-4 bg-white border-b border-[#E3EAF3] shadow-[0_1px_3px_rgba(16,33,59,0.04)] md:px-6">
-      {/* 1. Left: Mobile Menu + Rishi Laboratory Flask Logo */}
+    <header className="fixed top-3 left-3 right-3 md:left-71 md:right-4 z-30 h-16 rounded-2xl glass-panel shadow-[0_8px_32px_rgba(37,99,235,0.06)] border border-white/60 flex items-center justify-between px-3.5 sm:px-5 transition-all">
+      {/* 1. Left: Mobile Menu + Rishi Laboratory Branding */}
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={onMenuToggle}
-          className="p-2 text-slate-600 rounded-lg md:hidden hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1565D8]"
+          className="p-2 text-[#526581] hover:text-[#12234A] rounded-xl md:hidden glass-pill hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
           aria-label="Open mobile navigation menu"
         >
           <Menu className="w-5 h-5" />
         </button>
 
-        <Link href="/dashboard" className="flex items-center gap-3 group">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#1565D8] text-white shadow-sm ring-2 ring-[#1565D8]/20 group-hover:scale-105 transition-transform">
-            <FlaskConical className="w-5 h-5 text-white stroke-[2.2]" />
+        <Link href="/dashboard" className="flex items-center gap-2.5 group">
+          <div className="relative w-8 h-8 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#7C3AED] p-0.5 shadow-sm glow-blue flex items-center justify-center group-hover:scale-105 transition-transform">
+            <Image
+              src="/images/flask-logo.png"
+              alt="Logo"
+              width={22}
+              height={22}
+              className="object-contain"
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-base font-extrabold text-[#10213B] tracking-tight group-hover:text-[#1565D8] transition-colors leading-tight">
+              <span className="text-sm font-extrabold text-[#12234A] tracking-tight group-hover:text-[#2563EB] transition-colors leading-tight">
                 {lab.name}
               </span>
-              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-[#0D9488] bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full">
+              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold text-[#0D9488] bg-teal-50/80 border border-teal-200/50 px-2 py-0.5 rounded-full">
                 <MapPin className="w-2.5 h-2.5" />
                 {lab.address}
               </span>
             </div>
-            <p className="text-[11px] text-[#64748B] hidden sm:block">
-              Telangana • Diagnostic LIS
+            <p className="text-[10px] text-[#526581] hidden sm:block">
+              Diagnostic Healthcare Laboratory
             </p>
           </div>
         </Link>
       </div>
 
-      {/* 2. Center: Global Patient Quick Search */}
+      {/* 2. Center: Global Patient Quick Search with Glass Input */}
       <div className="flex-1 max-w-md mx-4 relative hidden sm:block" ref={searchRef}>
         <div className="relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-[#526581] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
+            ref={inputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
@@ -164,43 +183,50 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
               if (searchQuery.trim().length > 0) setIsSearchOpen(true);
             }}
             placeholder="Search patient by name, MRN, or phone..."
-            className="w-full pl-10 pr-8 py-2 text-xs bg-[#F5F8FC] hover:bg-[#EDF2F9] focus:bg-white text-[#172B4D] placeholder-slate-400 border border-[#E3EAF3] rounded-xl focus:border-[#1565D8] focus:ring-2 focus:ring-[#1565D8]/20 transition-all outline-none"
+            className="glass-input w-full pl-9 pr-14 py-2 text-xs text-[#12234A] placeholder-[#64748B] rounded-xl outline-none transition-all"
           />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setIsSearchOpen(false);
-              }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {searchQuery ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setIsSearchOpen(false);
+                }}
+                className="text-[#64748B] hover:text-[#12234A] p-0.5"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-semibold text-[#64748B] bg-white/70 border border-slate-200/80 rounded shadow-2xs pointer-events-none">
+                ⌘K
+              </kbd>
+            )}
+          </div>
         </div>
 
-        {/* Live Search Results Dropdown */}
+        {/* Live Search Results Dropdown in Glass Card */}
         {isSearchOpen && (
-          <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl border border-[#E3EAF3] shadow-lg overflow-hidden z-50">
+          <div className="absolute left-0 right-0 top-full mt-2 glass-panel rounded-2xl shadow-xl overflow-hidden z-50 border border-white/80 animate-fade-in">
             {searchResults.length > 0 ? (
               <div className="py-2">
-                <div className="px-3 py-1 text-[10px] font-bold text-[#64748B] uppercase tracking-wider bg-slate-50 border-b border-slate-100">
-                  Matching Patients ({searchResults.length})
+                <div className="px-3.5 py-1 text-[10px] font-bold text-[#526581] uppercase tracking-wider bg-white/40 border-b border-white/50 flex items-center justify-between">
+                  <span>Matching Patients</span>
+                  <span className="font-mono text-[#2563EB]">{searchResults.length}</span>
                 </div>
-                <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
+                <div className="max-h-64 overflow-y-auto divide-y divide-white/40 glass-scrollbar">
                   {searchResults.map((p) => (
                     <button
                       key={p.id}
                       type="button"
                       onClick={() => handleSelectPatient(p)}
-                      className="w-full text-left px-3.5 py-2.5 hover:bg-[#F5F8FC] flex items-center justify-between transition-colors group"
+                      className="w-full text-left px-3.5 py-2.5 hover:bg-white/70 flex items-center justify-between transition-colors group"
                     >
                       <div>
-                        <div className="text-xs font-bold text-[#10213B] group-hover:text-[#1565D8]">
+                        <div className="text-xs font-bold text-[#12234A] group-hover:text-[#2563EB]">
                           {p.full_name}
                         </div>
-                        <div className="text-[11px] text-[#64748B] flex items-center gap-2 mt-0.5 font-mono">
+                        <div className="text-[11px] text-[#526581] flex items-center gap-2 mt-0.5 font-mono">
                           <span>{p.patient_number}</span>
                           <span>•</span>
                           <span>
@@ -219,7 +245,7 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
                           )}
                         </div>
                       </div>
-                      <span className="text-[11px] font-bold text-[#1565D8] bg-blue-50 px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[10px] font-bold text-[#2563EB] bg-blue-50/90 px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
                         View Visit
                       </span>
                     </button>
@@ -227,7 +253,7 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
                 </div>
               </div>
             ) : (
-              <div className="p-4 text-center text-xs text-[#64748B]">
+              <div className="p-4 text-center text-xs text-[#526581]">
                 No patients found matching &quot;{searchQuery}&quot;.
               </div>
             )}
@@ -235,20 +261,20 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
         )}
       </div>
 
-      {/* 3. Right: Clock & Staff Switcher */}
-      <div className="flex items-center gap-3">
+      {/* 3. Right: Clock & Staff Switcher in Glass Pills */}
+      <div className="flex items-center gap-2.5">
         {/* Live IST Clock */}
         {currentTime && (
-          <div className="hidden lg:flex items-center gap-2 text-xs text-[#64748B] bg-[#F5F8FC] border border-[#E3EAF3] px-3 py-1.5 rounded-xl font-medium">
+          <div className="hidden lg:flex items-center gap-2 text-xs text-[#12234A] glass-pill px-3 py-1.5 font-medium">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="text-[#172B4D] font-bold">{currentTime}</span>
+            <span className="font-semibold">{currentTime}</span>
           </div>
         )}
 
-        {/* Staff Switcher Badge */}
+        {/* Staff Switcher Badge: Exactly Two Operational Roles (Padma - Admin, Rishi - Staff) */}
         <div className="relative group">
-          <div className="flex items-center gap-2.5 bg-[#F5F8FC] hover:bg-[#EDF2F9] border border-[#E3EAF3] rounded-xl px-3 py-1.5 cursor-pointer transition-all">
-            <div className="w-8 h-8 rounded-lg bg-[#1565D8] text-white font-bold text-xs flex items-center justify-center shadow-xs">
+          <div className="flex items-center gap-2 glass-card hover:bg-white/80 rounded-xl px-2.5 py-1.5 cursor-pointer transition-all border border-white/60">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#2563EB] to-[#7C3AED] text-white font-bold text-xs flex items-center justify-center shadow-xs">
               {currentStaff.full_name
                 .replace(/Dr\./i, '')
                 .trim()
@@ -256,9 +282,9 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
                 .toUpperCase()}
             </div>
             <div className="text-left hidden sm:block">
-              <div className="text-xs font-bold text-[#10213B] flex items-center gap-1.5">
+              <div className="text-xs font-bold text-[#12234A] flex items-center gap-1">
                 <span>{currentStaff.full_name.split(' ')[0]}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#64748B]" />
+                <ChevronDown className="w-3 h-3 text-[#526581]" />
               </div>
               <div className="mt-0.5">
                 {getPrimaryRoleBadge(currentStaff.roles)}

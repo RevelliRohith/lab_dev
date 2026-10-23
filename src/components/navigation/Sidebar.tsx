@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { globalStore } from '@/lib/store';
 import {
@@ -12,7 +13,6 @@ import {
   Receipt,
   Settings,
   Phone,
-  CheckCircle2,
   Sparkles,
 } from 'lucide-react';
 
@@ -46,24 +46,42 @@ export function Sidebar() {
 
   const unpaidInvoices = globalStore.invoices.filter((i) => i.balance_due > 0).length;
 
-  const getBadge = (name: string) => {
+  const getBadge = (name: string, isActive: boolean) => {
     if (name === 'Tests & Results' && awaitingSpecimens > 0) {
       return (
-        <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+        <span
+          className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold ${
+            isActive
+              ? 'bg-white/25 text-white border border-white/30'
+              : 'bg-amber-100/80 text-amber-900 border border-amber-200/60'
+          }`}
+        >
           {awaitingSpecimens}
         </span>
       );
     }
     if (name === 'Reports' && awaitingReview > 0) {
       return (
-        <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-[#1565D8] border border-blue-200">
+        <span
+          className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold ${
+            isActive
+              ? 'bg-white/25 text-white border border-white/30'
+              : 'bg-blue-100/80 text-[#2563EB] border border-blue-200/60'
+          }`}
+        >
           {awaitingReview}
         </span>
       );
     }
     if (name === 'Patients & Billing' && unpaidInvoices > 0) {
       return (
-        <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
+        <span
+          className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold ${
+            isActive
+              ? 'bg-white/25 text-white border border-white/30'
+              : 'bg-rose-100/80 text-rose-800 border border-rose-200/60'
+          }`}
+        >
           {unpaidInvoices}
         </span>
       );
@@ -72,64 +90,97 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 pt-17 bg-white border-r border-[#E3EAF3] text-[#172B4D] shadow-[1px_0_4px_rgba(16,33,59,0.02)]">
-      <div className="flex flex-col flex-1 min-h-0 pt-5 pb-4">
-        {/* Module Header */}
-        <div className="px-5 mb-2.5 flex items-center justify-between">
-          <p className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase">
-            Clinical Modules
-          </p>
-          <span className="text-[10px] font-bold text-[#1565D8] bg-blue-50 px-2 py-0.5 rounded-full">
-            6 Modules
-          </span>
+    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:top-3 md:left-3 md:bottom-3 z-30 glass-panel rounded-2xl shadow-[0_8px_32px_rgba(37,99,235,0.06)] border border-white/60 overflow-hidden transition-all">
+      <div className="flex flex-col flex-1 min-h-0 p-3.5 justify-between">
+        {/* Top: Laboratory Branding */}
+        <div>
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all group"
+          >
+            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#7C3AED] p-0.5 shadow-sm glow-blue flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Image
+                src="/images/flask-logo.png"
+                alt="Rishi Laboratory Logo"
+                width={26}
+                height={26}
+                className="object-contain drop-shadow"
+                priority
+              />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-extrabold text-[#12234A] tracking-tight truncate group-hover:text-[#2563EB] transition-colors">
+                  Rishi Lab
+                </span>
+                <span className="text-[9px] font-bold text-[#2563EB] bg-blue-50/80 border border-blue-200/50 px-1.5 py-0.2 rounded-full">
+                  LIS
+                </span>
+              </div>
+              <p className="text-[11px] text-[#526581] truncate">Diagnostic Suite</p>
+            </div>
+          </Link>
+
+          {/* Section Divider with Pill Label */}
+          <div className="px-2 mt-4 mb-2 flex items-center justify-between">
+            <p className="text-[10px] font-bold tracking-wider text-[#64748B] uppercase">
+              Clinical Modules
+            </p>
+            <span className="text-[10px] font-semibold text-[#2563EB] glass-pill px-2 py-0.5">
+              6 Modules
+            </span>
+          </div>
+
+          {/* Navigation Items */}
+          <nav className="space-y-1" aria-label="Sidebar Navigation">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                pathname === item.href ||
+                (item.href !== '/dashboard' && pathname.startsWith(item.href));
+
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-r from-[#2563EB] via-[#3B82F6] to-[#6366F1] text-white shadow-md glow-blue border border-white/30'
+                      : 'text-[#2C3E50] hover:bg-white/60 hover:text-[#2563EB]'
+                  }`}
+                >
+                  <Icon
+                    className={`w-4 h-4 flex-shrink-0 transition-transform ${
+                      isActive ? 'text-white' : 'text-[#64748B]'
+                    }`}
+                  />
+                  <span className="truncate">{item.name}</span>
+                  {getBadge(item.name, isActive)}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Navigation Items */}
-        <nav className="flex-1 px-3 space-y-1.5" aria-label="Sidebar Navigation">
-          {navigationItems.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              pathname === item.href ||
-              (item.href !== '/dashboard' && pathname.startsWith(item.href));
-
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                  isActive
-                    ? 'bg-[#1565D8] text-white shadow-sm ring-1 ring-[#1565D8]'
-                    : 'text-[#172B4D] hover:bg-[#F5F8FC] hover:text-[#1565D8]'
-                }`}
-              >
-                <Icon
-                  className={`w-4 h-4 flex-shrink-0 ${
-                    isActive ? 'text-white' : 'text-[#64748B]'
-                  }`}
-                />
-                <span className="truncate">{item.name}</span>
-                {getBadge(item.name)}
-              </Link>
-            );
-          })}
-        </nav>
-
         {/* Sidebar Footer Info Card */}
-        <div className="p-3.5 mx-3 rounded-2xl bg-[#F5F8FC] border border-[#E3EAF3] text-xs space-y-2">
+        <div className="p-3 rounded-xl glass-card text-xs space-y-2 mt-auto">
           <div>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <p className="font-extrabold text-[#10213B] text-xs">Rishi Laboratory</p>
+              <p className="font-extrabold text-[#12234A] text-xs">Rishi Laboratory</p>
             </div>
-            <p className="text-[11px] text-[#64748B] mt-0.5">Choutuppal, Telangana</p>
+            <p className="text-[11px] text-[#526581] mt-0.5">Choutuppal, Telangana</p>
           </div>
           <div className="flex items-center gap-1.5 text-[11px] text-[#0D9488] font-bold">
             <Phone className="w-3 h-3 text-[#0D9488]" />
             <span>+91 98482 28971</span>
           </div>
-          <div className="pt-2 border-t border-[#E3EAF3] flex items-center justify-between text-[10px] text-[#64748B]">
-            <span className="font-semibold text-emerald-600">Online • Port 3005</span>
-            <span className="font-mono">LIS v1.0</span>
+          <div className="pt-2 border-t border-slate-200/50 flex items-center justify-between text-[10px] text-[#64748B]">
+            <span className="font-semibold text-emerald-600 flex items-center gap-1">
+              <Sparkles className="w-2.5 h-2.5 text-emerald-500" />
+              Port 3005
+            </span>
+            <span className="font-mono text-[#526581]">v1.0 Ready</span>
           </div>
         </div>
       </div>

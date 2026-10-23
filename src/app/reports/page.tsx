@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { globalStore } from '@/lib/store';
-import { Order, ReportVersion } from '@/lib/types';
+import { ReportVersion } from '@/lib/types';
 import {
   downloadReportPdfBlob,
   openReportPdfInNewTab,
@@ -21,6 +21,7 @@ import {
   RotateCcw,
   ShieldCheck,
   X,
+  Sparkles,
 } from 'lucide-react';
 
 export default function ReportsManagementPage() {
@@ -135,24 +136,23 @@ export default function ReportsManagementPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3EAF3]">
+      {/* Top Header Card */}
+      <div className="glass-panel rounded-3xl p-6 sm:p-7 border border-white/80 shadow-[0_8px_32px_rgba(37,99,235,0.05)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-extrabold text-[#10213B] tracking-tight">
-              Diagnostic Reports
-            </h1>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#1565D8] border border-blue-200">
-              Official A4 Archive
-            </span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold glass-pill text-[#2563EB] mb-2">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Official Diagnostic Archive</span>
           </div>
-          <p className="text-xs sm:text-sm text-[#64748B] mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#12234A] tracking-tight">
+            Diagnostic Reports
+          </h1>
+          <p className="text-xs sm:text-sm text-[#526581] mt-1 max-w-xl">
             Print, download, and review officially finalized laboratory reports. Clinical Laboratory Director: {lab.clinical_director || 'Vakiti Padma Reddy'}.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-[#64748B] bg-white border border-[#E3EAF3] px-3.5 py-2 rounded-xl shadow-xs">
-          <FlaskConical className="w-4 h-4 text-[#1565D8]" />
+        <div className="flex items-center gap-2 text-xs text-[#526581] glass-card px-3.5 py-2 rounded-2xl border border-white/60 shadow-xs">
+          <FlaskConical className="w-4 h-4 text-[#2563EB]" />
           <span>
             {lab.name} • {lab.address}
           </span>
@@ -161,7 +161,7 @@ export default function ReportsManagementPage() {
 
       {/* Messages */}
       {actionError && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center justify-between gap-3 shadow-xs">
+        <div className="p-4 bg-rose-50/90 border border-rose-200/60 rounded-2xl text-xs text-rose-800 flex items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
             <span className="font-semibold">{actionError}</span>
@@ -172,7 +172,7 @@ export default function ReportsManagementPage() {
         </div>
       )}
       {actionSuccess && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between gap-3 shadow-xs">
+        <div className="p-4 bg-emerald-50/90 border border-emerald-200/60 rounded-2xl text-xs text-emerald-800 flex items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span className="font-semibold">{actionSuccess}</span>
@@ -183,58 +183,58 @@ export default function ReportsManagementPage() {
         </div>
       )}
 
-      {/* Simple Two-Tab Filter: Reports Ready vs. Pending Sign-off */}
-      <div className="flex border-b border-[#E3EAF3] gap-6">
+      {/* Two-Tab Filter in Liquid Glass Card */}
+      <div className="inline-flex glass-card p-1.5 rounded-2xl border border-white/70 shadow-xs max-w-md w-full">
         <button
           type="button"
           onClick={() => setFilterTab('ready')}
-          className={`pb-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all ${
+          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
             filterTab === 'ready'
-              ? 'border-[#1565D8] text-[#1565D8]'
-              : 'border-transparent text-[#64748B] hover:text-[#10213B]'
+              ? 'bg-gradient-to-r from-[#2563EB] to-[#6366F1] text-white shadow-sm glow-blue'
+              : 'text-[#526581] hover:text-[#12234A]'
           }`}
         >
-          <FileCheck2 className="w-4 h-4" />
+          <FileCheck2 className="w-3.5 h-3.5" />
           <span>Reports Ready ({releasedReports.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setFilterTab('pending')}
-          className={`pb-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all ${
+          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
             filterTab === 'pending'
-              ? 'border-[#1565D8] text-[#1565D8]'
-              : 'border-transparent text-[#64748B] hover:text-[#10213B]'
+              ? 'bg-gradient-to-r from-[#2563EB] to-[#6366F1] text-white shadow-sm glow-blue'
+              : 'text-[#526581] hover:text-[#12234A]'
           }`}
         >
-          <Clock className="w-4 h-4" />
+          <Clock className="w-3.5 h-3.5" />
           <span>Pending Sign-off ({pendingOrders.length})</span>
         </button>
       </div>
 
       {/* TAB 1: REPORTS READY (Released Archive) */}
       {filterTab === 'ready' && (
-        <div className="bg-white border border-[#E3EAF3] rounded-2xl shadow-[0_1px_3px_rgba(16,33,59,0.04)] overflow-hidden space-y-4 p-5">
+        <div className="glass-panel border border-white/80 rounded-3xl shadow-[0_8px_32px_rgba(37,99,235,0.05)] overflow-hidden space-y-4 p-5 sm:p-6">
           {/* Search bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative max-w-md w-full">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-[#526581] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search by patient name, MRN, or report number..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-[#1565D8]/20 focus:border-[#1565D8] outline-none"
+                className="glass-input w-full pl-10 pr-4 py-2 text-xs text-[#12234A] rounded-xl outline-none"
               />
             </div>
-            <span className="text-xs text-[#64748B]">
+            <span className="text-xs text-[#526581]">
               Showing {filteredReports.length} finalized diagnostic documents
             </span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-[#172B4D]">
-              <thead className="bg-[#F5F8FC] text-[#64748B] font-semibold border-b border-[#E3EAF3]">
+            <table className="w-full text-left text-xs text-[#12234A]">
+              <thead className="bg-white/40 text-[#526581] font-semibold border-b border-white/60">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Report Reference</th>
                   <th className="px-4 py-3 font-semibold">Patient & Order</th>
@@ -244,25 +244,25 @@ export default function ReportsManagementPage() {
                   <th className="px-4 py-3 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E3EAF3]">
+              <tbody className="divide-y divide-white/40">
                 {filteredReports.length > 0 ? (
                   filteredReports.map((rep) => {
                     const order = globalStore.orders.find((o) => o.id === rep.order_id);
                     return (
-                      <tr key={rep.id} className="hover:bg-[#F5F8FC]/80 transition-colors">
-                        <td className="px-4 py-3 font-mono font-bold text-[#10213B]">
+                      <tr key={rep.id} className="hover:bg-white/50 transition-colors">
+                        <td className="px-4 py-3 font-mono font-bold text-[#12234A]">
                           {rep.report_number}
                         </td>
                         <td className="px-4 py-3">
-                          <div className="font-semibold text-[#10213B]">
+                          <div className="font-semibold text-[#12234A]">
                             {rep.report_snapshot.patient.full_name}
                           </div>
-                          <div className="text-[11px] font-mono text-[#64748B]">
+                          <div className="text-[11px] font-mono text-[#526581]">
                             {order?.order_number || rep.report_snapshot.order_number}
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#F5F8FC] text-[#172B4D] border border-[#E3EAF3]">
+                          <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold glass-pill text-[#12234A]">
                             v{rep.version_number}
                           </span>
                         </td>
@@ -270,10 +270,10 @@ export default function ReportsManagementPage() {
                           <span
                             className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                               rep.status === 'released'
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                ? 'bg-emerald-100/90 text-emerald-800 border border-emerald-200/60'
                                 : rep.status === 'superseded'
-                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                                : 'bg-blue-100 text-[#1565D8] border border-blue-200'
+                                ? 'bg-amber-100/90 text-amber-800 border border-amber-200/60'
+                                : 'bg-blue-100/90 text-[#2563EB] border border-blue-200/60'
                             }`}
                           >
                             {rep.status}
@@ -287,7 +287,7 @@ export default function ReportsManagementPage() {
                             </div>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-[#64748B]">
+                        <td className="px-4 py-3 text-[#526581]">
                           {rep.released_at
                             ? new Date(rep.released_at).toLocaleDateString('en-IN', {
                                 day: '2-digit',
@@ -304,10 +304,10 @@ export default function ReportsManagementPage() {
                             type="button"
                             onClick={() => handleViewPdf(rep)}
                             disabled={isGeneratingPdf === rep.id}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#10213B] bg-white hover:bg-[#F5F8FC] rounded-lg border border-[#E3EAF3] transition-all disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#12234A] glass-card hover:bg-white rounded-xl border border-white/60 transition-all disabled:opacity-50"
                             title="Open A4 PDF to print"
                           >
-                            <Printer className="w-3.5 h-3.5 text-[#1565D8]" />
+                            <Printer className="w-3.5 h-3.5 text-[#2563EB]" />
                             <span>Print</span>
                           </button>
 
@@ -316,7 +316,7 @@ export default function ReportsManagementPage() {
                             type="button"
                             onClick={() => handleDownloadPdf(rep)}
                             disabled={isGeneratingPdf === rep.id}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1565D8] bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#2563EB] bg-blue-50/80 hover:bg-blue-100 border border-blue-200/60 rounded-xl transition-all disabled:opacity-50"
                             title="Download finalized A4 PDF report"
                           >
                             <Download className="w-3.5 h-3.5" />
@@ -327,7 +327,7 @@ export default function ReportsManagementPage() {
                           {order && (
                             <Link
                               href={`/tests/${order.id}`}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-[#64748B] hover:text-[#10213B] bg-[#F5F8FC] rounded-lg border border-[#E3EAF3] transition-all"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-[#526581] hover:text-[#12234A] glass-card hover:bg-white rounded-xl transition-all"
                               title="Open result entry screen"
                             >
                               <span>View Order</span>
@@ -343,7 +343,7 @@ export default function ReportsManagementPage() {
                                 setAmendReason('');
                                 setAmendNotes('');
                               }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-all"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-amber-800 bg-amber-50/80 hover:bg-amber-100 border border-amber-200/60 rounded-xl transition-all"
                               title="Record material correction or amendment"
                             >
                               <RotateCcw className="w-3 h-3" />
@@ -356,7 +356,7 @@ export default function ReportsManagementPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-xs text-[#64748B]">
+                    <td colSpan={6} className="px-4 py-8 text-center text-xs text-[#526581]">
                       No released diagnostic reports found.
                     </td>
                   </tr>
@@ -369,137 +369,117 @@ export default function ReportsManagementPage() {
 
       {/* TAB 2: PENDING SIGN-OFF */}
       {filterTab === 'pending' && (
-        <div className="bg-white border border-[#E3EAF3] rounded-2xl shadow-[0_1px_3px_rgba(16,33,59,0.04)] overflow-hidden space-y-4 p-5">
-          <div className="flex items-center justify-between pb-2 border-b border-[#E3EAF3]">
+        <div className="glass-panel border border-white/80 rounded-3xl shadow-[0_8px_32px_rgba(37,99,235,0.05)] overflow-hidden space-y-4 p-5 sm:p-6">
+          <div className="flex items-center justify-between pb-2 border-b border-white/60">
             <div>
-              <h2 className="text-sm font-bold text-[#10213B]">
+              <h2 className="text-sm font-bold text-[#12234A]">
                 Orders Awaiting Final Report Sign-off
               </h2>
-              <p className="text-xs text-[#64748B]">
+              <p className="text-xs text-[#526581]">
                 Results have been entered and submitted. Click to open result entry and finalize report.
               </p>
             </div>
-            <span className="text-xs font-bold px-2.5 py-1 bg-amber-50 text-amber-800 rounded-full border border-amber-200">
+            <span className="text-xs font-bold px-2.5 py-1 bg-amber-50/80 text-amber-800 rounded-full border border-amber-200/60">
               {pendingOrders.length} Pending
             </span>
           </div>
 
-          <div className="divide-y divide-[#E3EAF3]">
+          <div className="divide-y divide-white/40">
             {pendingOrders.length > 0 ? (
               pendingOrders.map((ord) => (
                 <div
                   key={ord.id}
-                  className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#F5F8FC]/60 transition-colors"
+                  className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/50 transition-colors"
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-sm text-[#10213B]">
+                      <span className="font-mono font-bold text-sm text-[#12234A]">
                         {ord.order_number}
                       </span>
-                      <span className="font-bold text-sm text-[#10213B]">
+                      <span className="font-bold text-sm text-[#12234A]">
                         {ord.patient?.full_name}
                       </span>
-                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
-                        {ord.priority}
-                      </span>
                     </div>
-                    <p className="text-xs text-[#64748B] mt-0.5">
-                      Tests: {ord.tests.map((t) => t.test_name_snapshot).join(', ')} • MRN:{' '}
-                      <span className="font-mono">{ord.patient?.patient_number}</span>
-                    </p>
+                    <div className="text-xs text-[#526581] mt-1">
+                      Tests: {ord.tests.map((t) => t.test_code_snapshot).join(', ')}
+                    </div>
                   </div>
-
                   <Link
                     href={`/tests/${ord.id}`}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#1565D8] hover:bg-[#104fad] rounded-xl shadow-xs transition-all self-start sm:self-auto"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#2563EB] to-[#6366F1] rounded-xl shadow-xs glow-blue hover:brightness-105 transition-all"
                   >
-                    <span>Open Result Entry & Finalize</span>
+                    <span>Open & Finalize</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
               ))
             ) : (
-              <div className="py-8 text-center text-xs text-[#64748B]">
-                No orders are currently pending sign-off. All submitted orders are released!
+              <div className="py-8 text-center text-xs text-[#526581]">
+                No orders are currently waiting for sign-off.
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* MODAL: Issue Report Amendment */}
+      {/* AMENDMENT MODAL */}
       {amendModalReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#10213B]/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 border border-[#E3EAF3]">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E3EAF3]">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-amber-50 text-amber-800 rounded-xl">
-                  <RotateCcw className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-[#10213B]">
-                    Document Clinical Amendment
-                  </h2>
-                  <p className="text-xs text-[#64748B]">
-                    Report {amendModalReport.report_number}
-                  </p>
-                </div>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/40 backdrop-blur-md animate-fade-in">
+          <div className="glass-panel border border-white/90 shadow-2xl rounded-3xl max-w-lg w-full p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/60">
+              <h2 className="text-base font-bold text-[#12234A]">
+                Amend Report: {amendModalReport.report_number}
+              </h2>
               <button
                 type="button"
                 onClick={() => setAmendModalReport(null)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-[#526581] hover:text-[#12234A] p-1.5 rounded-xl glass-pill"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-[#64748B] leading-relaxed">
-              Clinical Laboratory guidelines require documenting material corrections, reason for amendment, and communication with ordering physician before issuing a revised version.
-            </p>
-
             <form onSubmit={handleConfirmAmendment} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#10213B] mb-1">
-                  Material Reason for Clinical Amendment *
+                <label className="block text-xs font-semibold text-[#12234A] mb-1">
+                  Mandatory Clinical Amendment Reason *
                 </label>
                 <textarea
                   required
-                  rows={2}
-                  placeholder="e.g. Specimen re-analyzed due to dilution correction."
+                  rows={3}
+                  placeholder="e.g. Dilution factor correction, retested sample confirmed, clerical adjustment"
                   value={amendReason}
                   onChange={(e) => setAmendReason(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"
+                  className="glass-input w-full px-3 py-2 text-xs rounded-xl outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#10213B] mb-1">
-                  Physician Communication Notes
+                <label className="block text-xs font-semibold text-[#12234A] mb-1">
+                  Corrective Notes (optional)
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="e.g. Notified ordering physician of updated analytical values."
+                  placeholder="Additional audit commentary"
                   value={amendNotes}
                   onChange={(e) => setAmendNotes(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"
+                  className="glass-input w-full px-3 py-2 text-xs rounded-xl outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E3EAF3]">
+              <div className="flex justify-end gap-2.5 pt-2 border-t border-white/60">
                 <button
                   type="button"
                   onClick={() => setAmendModalReport(null)}
-                  className="px-4 py-2 text-xs font-semibold text-[#64748B] bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                  className="px-4 py-2 text-xs font-semibold text-[#526581] glass-card hover:bg-white rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-md transition-all"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Mark Superseded & Amend</span>
+                  Confirm & Supersede Report
                 </button>
               </div>
             </form>

@@ -15,13 +15,11 @@ import {
   CheckCircle2,
   PhoneCall,
   Save,
-  Send,
   ShieldCheck,
   Clock,
   FlaskConical,
   Activity,
   Stethoscope,
-  Info,
   Check,
   AlertCircle,
   Download,
@@ -31,6 +29,7 @@ import {
   X,
   Share2,
   Lock,
+  Sparkles,
 } from 'lucide-react';
 
 export default function OrderResultEntryPage({
@@ -125,17 +124,17 @@ export default function OrderResultEntryPage({
 
   if (!order || !order.patient) {
     return (
-      <div className="max-w-xl mx-auto my-12 p-8 bg-white border border-[#E3EAF3] rounded-2xl shadow-sm text-center space-y-4">
+      <div className="max-w-xl mx-auto my-12 p-8 glass-panel border border-white/80 rounded-3xl shadow-sm text-center space-y-4">
         <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto">
           <AlertCircle className="w-6 h-6" />
         </div>
-        <h2 className="text-lg font-bold text-[#10213B]">Order Not Found</h2>
-        <p className="text-sm text-[#64748B]">
+        <h2 className="text-lg font-bold text-[#12234A]">Order Not Found</h2>
+        <p className="text-sm text-[#526581]">
           The requested diagnostic order could not be located in the laboratory records.
         </p>
         <Link
           href="/tests"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#1565D8] text-white text-xs font-semibold rounded-xl hover:bg-[#104fad] shadow-sm transition-all"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#2563EB] to-[#6366F1] text-white text-xs font-bold rounded-xl shadow-md glow-blue hover:brightness-105 transition-all"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Tests & Worklist</span>
@@ -153,9 +152,6 @@ export default function OrderResultEntryPage({
   // Role & finalization checks
   const isAdmin = activeStaff.roles.includes('admin');
   const isReviewer = activeStaff.roles.includes('authorized_reviewer');
-  const hasAuthoredResults = order.results.some(
-    (r) => r.entered_by === activeStaff.id || r.last_edited_by === activeStaff.id
-  );
   const canAuthorizeOnPage = (isAdmin || isReviewer) && !isAuthorized;
 
   // Compute total parameters count and entered count
@@ -229,7 +225,6 @@ export default function OrderResultEntryPage({
               }
             }
           } else {
-            // Disposition is not_performed or cancelled
             if (!val.reason || val.reason.trim().length === 0) {
               throw new Error(
                 `Clinical reason is mandatory for non-performed/cancelled parameter "${p.parameter_name_snapshot}".`
@@ -266,7 +261,6 @@ export default function OrderResultEntryPage({
 
       setTick((t) => t + 1);
     } catch (err: unknown) {
-      // Unsaved values remain preserved in paramValues state
       setErrorMessage((err as Error).message);
     } finally {
       setIsSaving(false);
@@ -345,10 +339,8 @@ export default function OrderResultEntryPage({
       return;
     }
 
-    // Format phone with India 91 prefix if 10 digits
     const formattedPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
 
-    // Generic, privacy-compliant message (no sensitive clinical values or unsecured database URLs)
     const messageText = `Hello ${patient.full_name}, your diagnostic test report (Order #${order.order_number}) from Rishi Laboratory, Choutuppal is ready. Please visit our laboratory or contact us at +91 9848228971 to collect your official authorized report. Thank you.`;
 
     const waUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(messageText)}`;
@@ -359,7 +351,6 @@ export default function OrderResultEntryPage({
     );
   };
 
-  // Native Device Share sheet for sharing PDF directly to WhatsApp on mobile
   const handleNativeSharePdf = async () => {
     if (!authorizedReport) return;
     try {
@@ -378,7 +369,6 @@ export default function OrderResultEntryPage({
         });
         setWhatsappNotice('Native share sheet opened. Confirm transmission on your device.');
       } else {
-        // Fallback to Web WhatsApp if file share not supported by browser
         handleSendWhatsAppWeb();
       }
     } catch (err: unknown) {
@@ -390,7 +380,6 @@ export default function OrderResultEntryPage({
     }
   };
 
-  // Simple Authorized Finalization Action (For Admin / Clinical Director)
   const handleConfirmAuthorizeAndRelease = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -435,7 +424,6 @@ export default function OrderResultEntryPage({
     }
   };
 
-  // Critical Notification Save
   const handleSaveCriticalNotification = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -475,34 +463,34 @@ export default function OrderResultEntryPage({
   };
 
   return (
-    <div className="space-y-6 pb-28 max-w-7xl mx-auto">
+    <div className="space-y-6 pb-36 max-w-7xl mx-auto">
       {/* Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 text-xs text-[#64748B]">
-        <Link href="/dashboard" className="hover:text-[#1565D8] transition-colors">
+      <div className="flex items-center gap-2 text-xs text-[#526581]">
+        <Link href="/dashboard" className="hover:text-[#2563EB] transition-colors">
           Dashboard
         </Link>
         <span>/</span>
-        <Link href="/tests" className="hover:text-[#1565D8] transition-colors">
+        <Link href="/tests" className="hover:text-[#2563EB] transition-colors">
           Tests & Results
         </Link>
         <span>/</span>
-        <span className="font-semibold text-[#10213B] font-mono">{order.order_number}</span>
+        <span className="font-semibold text-[#12234A] font-mono">{order.order_number}</span>
       </div>
 
       {/* Patient Header Card */}
-      <div className="bg-white border border-[#E3EAF3] rounded-2xl p-6 shadow-[0_1px_3px_rgba(16,33,59,0.04)]">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-[#E3EAF3]">
+      <div className="glass-panel border border-white/80 rounded-3xl p-6 sm:p-7 shadow-[0_8px_32px_rgba(37,99,235,0.05)]">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-white/60">
           <div className="flex items-start gap-4">
             <Link
               href="/tests"
-              className="mt-1 p-2 text-[#64748B] hover:text-[#10213B] bg-[#F5F8FC] hover:bg-[#E3EAF3] rounded-xl border border-[#E3EAF3] transition-all"
+              className="mt-1 p-2 text-[#526581] hover:text-[#12234A] glass-card hover:bg-white rounded-xl transition-all"
               title="Return to Test Worklist"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="text-xl font-bold text-[#10213B] tracking-tight font-mono">
+                <h1 className="text-xl sm:text-2xl font-bold text-[#12234A] tracking-tight font-mono">
                   {order.order_number}
                 </h1>
                 <span
@@ -511,30 +499,30 @@ export default function OrderResultEntryPage({
                       ? 'bg-rose-100 text-rose-800 border border-rose-300 animate-pulse'
                       : order.priority === 'urgent'
                       ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                      : 'bg-slate-100 text-slate-700 border border-slate-200'
+                      : 'bg-slate-100 text-slate-700'
                   }`}
                 >
                   {order.priority}
                 </span>
 
                 {isAuthorized ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-100/90 text-emerald-800 border border-emerald-300/60">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                     REPORT READY & RELEASED
                   </span>
                 ) : pendingSubmission ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-[#1565D8] border border-blue-300">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-blue-100/90 text-[#2563EB] border border-blue-300/60">
                     <Clock className="w-3.5 h-3.5" />
                     PENDING FINAL SIGN-OFF
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-amber-50/90 text-amber-800 border border-amber-200/60">
                     <Activity className="w-3.5 h-3.5" />
                     RESULT ENTRY IN PROGRESS
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#64748B] mt-1 flex flex-wrap items-center gap-2">
+              <p className="text-xs text-[#526581] mt-1 flex flex-wrap items-center gap-2">
                 <span>
                   Ordered:{' '}
                   {new Date(order.created_at).toLocaleDateString('en-IN', {
@@ -546,8 +534,8 @@ export default function OrderResultEntryPage({
                   })}
                 </span>
                 <span>•</span>
-                <span className="flex items-center gap-1 text-[#172B4D]">
-                  <Stethoscope className="w-3 h-3 text-[#1565D8]" />
+                <span className="flex items-center gap-1 text-[#12234A]">
+                  <Stethoscope className="w-3 h-3 text-[#2563EB]" />
                   Physician: <strong>{order.ordering_physician || 'Self / Routine Walk-in'}</strong>
                 </span>
                 {authorizedReport && (
@@ -578,56 +566,56 @@ export default function OrderResultEntryPage({
         </div>
 
         {/* Patient Demographics Highlight Strip */}
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-[#F5F8FC] rounded-xl border border-[#E3EAF3]">
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 glass-card rounded-2xl border border-white/60">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-blue-100 text-[#1565D8] flex items-center justify-center font-bold text-sm shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#7C3AED] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
               {patient.full_name.substring(0, 2).toUpperCase()}
             </div>
             <div>
-              <div className="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">
+              <div className="text-[10px] font-bold text-[#526581] uppercase tracking-wider">
                 Patient Name
               </div>
-              <div className="text-sm font-bold text-[#10213B]">{patient.full_name}</div>
+              <div className="text-sm font-bold text-[#12234A]">{patient.full_name}</div>
             </div>
           </div>
 
           <div>
-            <div className="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">
+            <div className="text-[10px] font-bold text-[#526581] uppercase tracking-wider">
               MRN / Patient ID
             </div>
-            <div className="text-xs font-mono font-bold text-[#10213B]">{patient.patient_number}</div>
-            <div className="text-[11px] text-[#64748B]">{patient.phone || 'No phone recorded'}</div>
+            <div className="text-xs font-mono font-bold text-[#12234A]">{patient.patient_number}</div>
+            <div className="text-[11px] text-[#526581]">{patient.phone || 'No phone recorded'}</div>
           </div>
 
           <div>
-            <div className="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">
+            <div className="text-[10px] font-bold text-[#526581] uppercase tracking-wider">
               Demographics
             </div>
-            <div className="text-xs font-semibold text-[#10213B]">
+            <div className="text-xs font-semibold text-[#12234A]">
               {patient.sex === 'male' ? 'Male ♂' : patient.sex === 'female' ? 'Female ♀' : 'Other'} •{' '}
               {patient.date_of_birth ? patient.date_of_birth : `~${patient.estimated_age_years} yrs (est.)`}
             </div>
-            <div className="text-[11px] text-[#64748B]">Choutuppal, Telangana</div>
+            <div className="text-[11px] text-[#526581]">Choutuppal, Telangana</div>
           </div>
 
           <div>
-            <div className="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">
+            <div className="text-[10px] font-bold text-[#526581] uppercase tracking-wider">
               Clinical Indication
             </div>
             <div
-              className="text-xs font-medium text-[#10213B] truncate"
+              className="text-xs font-medium text-[#12234A] truncate"
               title={order.clinical_indication || 'Routine diagnostic check'}
             >
               {order.clinical_indication || 'Routine diagnostic check'}
             </div>
-            <div className="text-[11px] text-[#1565D8] font-medium">Rishi Laboratory</div>
+            <div className="text-[11px] text-[#2563EB] font-medium">Rishi Laboratory</div>
           </div>
         </div>
       </div>
 
       {/* Alert / Feedback Messages */}
       {errorMessage && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center justify-between gap-3 shadow-sm">
+        <div className="p-4 bg-rose-50/90 border border-rose-200/60 rounded-2xl text-xs text-rose-800 flex items-center justify-between gap-3 shadow-sm">
           <div className="flex items-center gap-2.5">
             <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
             <div className="font-semibold">{errorMessage}</div>
@@ -643,7 +631,7 @@ export default function OrderResultEntryPage({
       )}
 
       {successMessage && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between gap-3 shadow-sm">
+        <div className="p-4 bg-emerald-50/90 border border-emerald-200/60 rounded-2xl text-xs text-emerald-800 flex items-center justify-between gap-3 shadow-sm">
           <div className="flex items-center gap-2.5">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
             <div className="font-semibold">{successMessage}</div>
@@ -660,15 +648,15 @@ export default function OrderResultEntryPage({
 
       {/* Critical Communication Log banner if any critical values logged */}
       {order.critical_notifications.length > 0 && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-2 shadow-sm">
+        <div className="p-4 bg-amber-50/90 border border-amber-200/60 rounded-2xl space-y-2 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-900 flex items-center gap-2">
+            <span className="text-xs font-bold text-amber-950 flex items-center gap-2">
               <PhoneCall className="w-4 h-4 text-amber-700" />
               <span>
                 Critical Physician Communications Recorded ({order.critical_notifications.length})
               </span>
             </span>
-            <span className="text-[11px] text-amber-800 font-semibold bg-amber-100/80 px-2 py-0.5 rounded-full">
+            <span className="text-[11px] text-amber-900 font-semibold bg-amber-100/80 px-2 py-0.5 rounded-full">
               CLIA Compliance Verified
             </span>
           </div>
@@ -703,37 +691,37 @@ export default function OrderResultEntryPage({
         </div>
       )}
 
-      {/* Parameter Entry Grids per Test Panel */}
+      {/* Parameter Entry Grids per Test Panel in Liquid Glass Cards */}
       <div className="space-y-6">
         {order.tests.map((test) => (
           <div
             key={test.id}
-            className="bg-white border border-[#E3EAF3] rounded-2xl shadow-[0_1px_3px_rgba(16,33,59,0.04)] overflow-hidden"
+            className="glass-panel border border-white/80 rounded-3xl shadow-[0_8px_32px_rgba(37,99,235,0.05)] overflow-hidden"
           >
             {/* Panel Header */}
-            <div className="px-6 py-4 bg-[#F5F8FC] border-b border-[#E3EAF3] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="px-6 py-4 bg-white/40 border-b border-white/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-blue-50 text-[#1565D8] rounded-xl border border-blue-100">
+                <div className="p-2 bg-blue-100/80 text-[#2563EB] rounded-xl border border-blue-200/50">
                   <FlaskConical className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#10213B] text-sm">
+                    <span className="font-bold text-[#12234A] text-sm">
                       {test.test_name_snapshot}
                     </span>
-                    <span className="text-[11px] font-mono font-bold text-[#64748B] bg-slate-200/60 px-2 py-0.5 rounded">
+                    <span className="text-[11px] font-mono font-bold text-[#526581] glass-pill px-2 py-0.5">
                       {test.test_code_snapshot}
                     </span>
                   </div>
-                  <span className="text-xs text-[#64748B]">
-                    Department: <strong className="text-[#10213B]">{test.department_snapshot}</strong>
+                  <span className="text-xs text-[#526581]">
+                    Department: <strong className="text-[#12234A]">{test.department_snapshot}</strong>
                   </span>
                 </div>
               </div>
 
-              <div className="text-xs text-[#64748B] font-mono">
+              <div className="text-xs text-[#526581] font-mono">
                 Panel Fee:{' '}
-                <strong className="text-[#10213B]">
+                <strong className="text-[#12234A]">
                   {currency} {test.test_price_snapshot.toFixed(2)}
                 </strong>
               </div>
@@ -741,8 +729,8 @@ export default function OrderResultEntryPage({
 
             {/* Parameters Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-[#172B4D]">
-                <thead className="bg-[#F5F8FC] text-[#64748B] font-semibold border-b border-[#E3EAF3]">
+              <table className="w-full text-left text-xs text-[#12234A]">
+                <thead className="bg-white/40 text-[#526581] font-semibold border-b border-white/60">
                   <tr>
                     <th className="px-5 py-3 font-semibold">Diagnostic Parameter</th>
                     <th className="px-4 py-3 font-semibold">Status / Disposition</th>
@@ -755,7 +743,7 @@ export default function OrderResultEntryPage({
                     <th className="px-5 py-3 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E3EAF3]">
+                <tbody className="divide-y divide-white/40">
                   {test.parameters.map((param) => {
                     const state = paramValues[param.id] || { disposition: 'performed' };
                     const rr = param.reference_range_snapshot;
@@ -788,18 +776,18 @@ export default function OrderResultEntryPage({
                         key={param.id}
                         className={`transition-colors ${
                           flag === 'critical'
-                            ? 'bg-rose-50/40 hover:bg-rose-50/70'
+                            ? 'bg-rose-50/50 hover:bg-rose-50/80'
                             : flag === 'abnormal'
-                            ? 'bg-amber-50/30 hover:bg-amber-50/60'
-                            : 'hover:bg-[#F5F8FC]/70'
+                            ? 'bg-amber-50/40 hover:bg-amber-50/70'
+                            : 'hover:bg-white/50'
                         }`}
                       >
                         {/* Parameter Name */}
                         <td className="px-5 py-3.5">
-                          <div className="font-semibold text-[#10213B]">
+                          <div className="font-semibold text-[#12234A]">
                             {param.parameter_name_snapshot}
                           </div>
-                          <div className="text-[11px] font-mono text-[#64748B]">
+                          <div className="text-[11px] font-mono text-[#526581]">
                             {param.parameter_code_snapshot}
                           </div>
                         </td>
@@ -815,7 +803,7 @@ export default function OrderResultEntryPage({
                                 e.target.value as 'performed' | 'not_performed' | 'cancelled'
                               )
                             }
-                            className="px-2.5 py-1.5 text-xs border border-[#E3EAF3] rounded-lg bg-white font-medium focus:ring-2 focus:ring-[#1565D8]/20 focus:border-[#1565D8]"
+                            className="glass-input px-2.5 py-1.5 text-xs rounded-xl font-medium"
                           >
                             <option value="performed">Performed</option>
                             <option value="not_performed">Not Performed</option>
@@ -840,12 +828,12 @@ export default function OrderResultEntryPage({
                                       e.target.value === '' ? null : Number(e.target.value)
                                     )
                                   }
-                                  className={`w-full px-3 py-1.5 text-xs font-mono font-bold rounded-lg border transition-all ${
+                                  className={`w-full px-3 py-1.5 text-xs font-mono font-bold rounded-xl border transition-all ${
                                     flag === 'critical'
-                                      ? 'border-rose-400 bg-rose-50/50 text-rose-900 ring-2 ring-rose-300'
+                                      ? 'border-rose-400 bg-rose-50/80 text-rose-950 ring-2 ring-rose-300'
                                       : flag === 'abnormal'
-                                      ? 'border-amber-400 bg-amber-50/50 text-amber-900 ring-2 ring-amber-200'
-                                      : 'border-[#E3EAF3] bg-white text-[#10213B] focus:ring-2 focus:ring-[#1565D8]/20 focus:border-[#1565D8]'
+                                      ? 'border-amber-400 bg-amber-50/80 text-amber-950 ring-2 ring-amber-200'
+                                      : 'glass-input text-[#12234A]'
                                   }`}
                                 />
                               </div>
@@ -857,7 +845,7 @@ export default function OrderResultEntryPage({
                                 onChange={(e) =>
                                   handleValueChange(param.id, 'text', e.target.value)
                                 }
-                                className="w-full px-3 py-1.5 text-xs border border-[#E3EAF3] rounded-lg bg-white focus:ring-2 focus:ring-[#1565D8]/20"
+                                className="glass-input w-full px-3 py-1.5 text-xs rounded-xl"
                               />
                             )
                           ) : (
@@ -869,13 +857,13 @@ export default function OrderResultEntryPage({
                               onChange={(e) =>
                                 handleValueChange(param.id, 'reason', e.target.value)
                               }
-                              className="w-full px-3 py-1.5 text-xs border border-amber-300 bg-amber-50 text-amber-900 rounded-lg font-medium focus:ring-2 focus:ring-amber-500"
+                              className="w-full px-3 py-1.5 text-xs border border-amber-300 bg-amber-50/90 text-amber-950 rounded-xl font-medium outline-none focus:ring-2 focus:ring-amber-500"
                             />
                           )}
                         </td>
 
                         {/* Standard Units */}
-                        <td className="px-4 py-3.5 text-[#64748B] font-mono text-[11px]">
+                        <td className="px-4 py-3.5 text-[#526581] font-mono text-[11px]">
                           {param.unit_snapshot || '—'}
                         </td>
 
@@ -883,7 +871,7 @@ export default function OrderResultEntryPage({
                         <td className="px-4 py-3.5 text-xs">
                           {rr.normal_low !== undefined && rr.normal_high !== undefined ? (
                             <div>
-                              <div className="font-semibold text-[#10213B]">
+                              <div className="font-semibold text-[#12234A]">
                                 {rr.normal_low} – {rr.normal_high}
                               </div>
                               {rr.critical_low !== undefined && rr.critical_high !== undefined && (
@@ -893,7 +881,7 @@ export default function OrderResultEntryPage({
                               )}
                             </div>
                           ) : (
-                            <span className="text-[#64748B] italic">Qualitative / Descriptive</span>
+                            <span className="text-[#526581] italic">Qualitative / Descriptive</span>
                           )}
                         </td>
 
@@ -926,7 +914,7 @@ export default function OrderResultEntryPage({
                                 setCritParamId(param.id);
                                 setShowCritModal(true);
                               }}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-800 bg-rose-100/80 hover:bg-rose-200/80 border border-rose-300 rounded-lg shadow-sm transition-all"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-800 bg-rose-100/90 hover:bg-rose-200 border border-rose-300 rounded-xl shadow-xs transition-all"
                             >
                               <PhoneCall className="w-3.5 h-3.5 text-rose-600" />
                               <span>Log Doctor Call</span>
@@ -944,48 +932,48 @@ export default function OrderResultEntryPage({
       </div>
 
       {/* =========================================================================
-          FOUR BOTTOM ACTIONS (STICKY BAR)
-          1. Save Results — Prominent Primary Button
+          FOUR BOTTOM ACTIONS (STICKY BAR IN LIQUID GLASS DESIGN)
+          1. Save & Submit — Prominent Primary Button
           2. Print Report — Secondary Action
           3. Send via WhatsApp — Secondary Action
           4. Download PDF — Secondary Action
           ========================================================================= */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E3EAF3] px-4 sm:px-6 py-3.5 shadow-[0_-4px_20px_rgba(16,33,59,0.08)]">
+      <div className="fixed bottom-3 left-3 right-3 md:left-71 md:right-4 z-40 glass-panel rounded-2xl shadow-[0_12px_40px_rgba(37,99,235,0.14)] border border-white/80 px-4 sm:px-6 py-3.5 transition-all">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Status & Progress Summary */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Live Progress Indicator */}
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-[#64748B]">Completion:</span>
-              <div className="w-24 sm:w-32 bg-slate-200 h-2 rounded-full overflow-hidden">
+              <span className="text-xs font-medium text-[#526581]">Completion:</span>
+              <div className="w-24 sm:w-32 bg-slate-200/70 h-2 rounded-full overflow-hidden">
                 <div
                   className={`h-full transition-all duration-300 ${
-                    isAllComplete ? 'bg-emerald-500' : 'bg-[#1565D8]'
+                    isAllComplete ? 'bg-emerald-500' : 'bg-gradient-to-r from-[#2563EB] to-[#6366F1]'
                   }`}
                   style={{
                     width: `${(enteredParamsCount / Math.max(1, allParams.length)) * 100}%`,
                   }}
                 />
               </div>
-              <span className="text-xs font-bold text-[#10213B] font-mono">
+              <span className="text-xs font-bold text-[#12234A] font-mono">
                 {enteredParamsCount}/{allParams.length}
               </span>
             </div>
 
             {/* Current Report State Badge */}
             {isAuthorized ? (
-              <span className="inline-flex items-center gap-1 text-xs text-emerald-800 font-bold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-300">
+              <span className="inline-flex items-center gap-1 text-xs text-emerald-800 font-bold bg-emerald-50/90 px-3 py-1 rounded-full border border-emerald-300/60">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Report Ready & Released</span>
               </span>
             ) : pendingSubmission ? (
-              <span className="inline-flex items-center gap-1 text-xs text-amber-800 font-bold bg-amber-50 px-2.5 py-1 rounded-full border border-amber-300">
+              <span className="inline-flex items-center gap-1 text-xs text-amber-800 font-bold bg-amber-50/90 px-3 py-1 rounded-full border border-amber-300/60">
                 <Clock className="w-3.5 h-3.5 text-amber-600" />
                 <span>Results Submitted • Pending Final Sign-off</span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 text-xs text-[#64748B] font-medium bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-                <Activity className="w-3.5 h-3.5 text-[#1565D8]" />
+              <span className="inline-flex items-center gap-1 text-xs text-[#526581] font-medium glass-pill px-3 py-1">
+                <Activity className="w-3.5 h-3.5 text-[#2563EB]" />
                 <span>Result Entry In Progress</span>
               </span>
             )}
@@ -998,7 +986,7 @@ export default function OrderResultEntryPage({
               type="button"
               onClick={handleSaveAndSubmit}
               disabled={isSaving}
-              className="col-span-2 sm:col-span-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-[#1565D8] hover:bg-[#104fad] active:scale-[0.98] rounded-xl shadow-md hover:shadow-lg transition-all min-h-[44px] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="col-span-2 sm:col-span-1 inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-[#2563EB] via-[#3B82F6] to-[#6366F1] hover:brightness-105 active:scale-[0.98] rounded-xl shadow-md glow-blue transition-all min-h-[44px] disabled:opacity-60 disabled:cursor-not-allowed"
               title="Validate and submit test results"
             >
               <Save className="w-4 h-4" />
@@ -1025,8 +1013,8 @@ export default function OrderResultEntryPage({
               disabled={!isAuthorized || isGeneratingPdf}
               className={`inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-xs font-semibold rounded-xl border transition-all min-h-[44px] ${
                 isAuthorized
-                  ? 'text-[#10213B] bg-white hover:bg-[#F5F8FC] border-[#E3EAF3] hover:border-[#1565D8] shadow-xs cursor-pointer'
-                  : 'text-slate-400 bg-slate-50 border-slate-200 cursor-not-allowed opacity-60'
+                  ? 'text-[#12234A] glass-card hover:bg-white border-white/80 shadow-xs cursor-pointer'
+                  : 'text-slate-400 bg-slate-100/60 border-slate-200 cursor-not-allowed opacity-60'
               }`}
               title={
                 isAuthorized
@@ -1034,7 +1022,7 @@ export default function OrderResultEntryPage({
                   : 'Print Report is disabled: Clinical authorization required'
               }
             >
-              <Printer className="w-4 h-4 text-[#1565D8]" />
+              <Printer className="w-4 h-4 text-[#2563EB]" />
               <span>Print Report</span>
               {!isAuthorized && <Lock className="w-3 h-3 text-slate-400 ml-0.5" />}
             </button>
@@ -1046,8 +1034,8 @@ export default function OrderResultEntryPage({
               disabled={!isAuthorized}
               className={`inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-xs font-semibold rounded-xl border transition-all min-h-[44px] ${
                 isAuthorized
-                  ? 'text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border-emerald-200 hover:border-emerald-400 shadow-xs cursor-pointer'
-                  : 'text-slate-400 bg-slate-50 border-slate-200 cursor-not-allowed opacity-60'
+                  ? 'text-emerald-800 bg-emerald-50/80 hover:bg-emerald-100 border-emerald-200 shadow-xs cursor-pointer'
+                  : 'text-slate-400 bg-slate-100/60 border-slate-200 cursor-not-allowed opacity-60'
               }`}
               title={
                 isAuthorized
@@ -1067,8 +1055,8 @@ export default function OrderResultEntryPage({
               disabled={!isAuthorized || isGeneratingPdf}
               className={`inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-xs font-semibold rounded-xl border transition-all min-h-[44px] ${
                 isAuthorized
-                  ? 'text-[#10213B] bg-white hover:bg-[#F5F8FC] border-[#E3EAF3] hover:border-[#1565D8] shadow-xs cursor-pointer'
-                  : 'text-slate-400 bg-slate-50 border-slate-200 cursor-not-allowed opacity-60'
+                  ? 'text-[#12234A] glass-card hover:bg-white border-white/80 shadow-xs cursor-pointer'
+                  : 'text-slate-400 bg-slate-100/60 border-slate-200 cursor-not-allowed opacity-60'
               }`}
               title={
                 isAuthorized
@@ -1076,7 +1064,7 @@ export default function OrderResultEntryPage({
                   : 'Download PDF is disabled: Clinical authorization required'
               }
             >
-              <Download className="w-4 h-4 text-[#1565D8]" />
+              <Download className="w-4 h-4 text-[#2563EB]" />
               <span>Download PDF</span>
               {!isAuthorized && <Lock className="w-3 h-3 text-slate-400 ml-0.5" />}
             </button>
@@ -1086,19 +1074,18 @@ export default function OrderResultEntryPage({
 
       {/* =========================================================================
           MODAL A: WHATSAPP SHARING DIALOG
-          Privacy-conscious, consent-driven, user-initiated sharing
           ========================================================================= */}
       {showWhatsAppModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#10213B]/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-[#E3EAF3]">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E3EAF3]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/40 backdrop-blur-md animate-fade-in">
+          <div className="glass-panel border border-white/90 shadow-2xl rounded-3xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/60">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100">
+                <div className="p-2 bg-emerald-100/80 text-emerald-700 rounded-xl border border-emerald-200/50">
                   <MessageSquare className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-[#10213B]">Send via WhatsApp</h2>
-                  <p className="text-xs text-[#64748B]">
+                  <h2 className="text-base font-bold text-[#12234A]">Send via WhatsApp</h2>
+                  <p className="text-xs text-[#526581]">
                     Patient: {patient.full_name} • Order {order.order_number}
                   </p>
                 </div>
@@ -1106,7 +1093,7 @@ export default function OrderResultEntryPage({
               <button
                 type="button"
                 onClick={() => setShowWhatsAppModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                className="text-[#526581] hover:text-[#12234A] p-1.5 rounded-xl glass-pill"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1115,7 +1102,7 @@ export default function OrderResultEntryPage({
             {/* Notification message details */}
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-[#10213B] mb-1">
+                <label className="block text-xs font-semibold text-[#12234A] mb-1">
                   Recipient Mobile Number *
                 </label>
                 <input
@@ -1124,15 +1111,15 @@ export default function OrderResultEntryPage({
                   placeholder="e.g. 9848228971"
                   value={whatsappPhone}
                   onChange={(e) => setWhatsappPhone(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs border border-[#E3EAF3] rounded-xl font-mono font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 outline-none"
+                  className="glass-input w-full px-3.5 py-2 text-xs font-mono font-bold rounded-xl outline-none"
                 />
-                <span className="text-[11px] text-[#64748B] mt-1 block">
+                <span className="text-[11px] text-[#526581] mt-1 block">
                   India country code (+91) applied automatically for 10-digit numbers.
                 </span>
               </div>
 
               {/* Patient Consent Checkbox */}
-              <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded-xl space-y-1.5">
+              <div className="p-3 bg-emerald-50/70 border border-emerald-200/60 rounded-2xl space-y-1.5">
                 <label className="flex items-start gap-2 cursor-pointer text-xs font-semibold text-emerald-950">
                   <input
                     type="checkbox"
@@ -1148,9 +1135,9 @@ export default function OrderResultEntryPage({
               </div>
 
               {/* Privacy Safeguard Note */}
-              <div className="p-3 bg-[#F5F8FC] border border-[#E3EAF3] rounded-xl text-xs text-[#64748B] space-y-1">
-                <div className="font-bold text-[#10213B] flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#1565D8]" />
+              <div className="p-3 glass-card rounded-2xl text-xs text-[#526581] space-y-1 border border-white/60">
+                <div className="font-bold text-[#12234A] flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#2563EB]" />
                   <span>Privacy Safeguard Invariant</span>
                 </div>
                 <p className="text-[11px] leading-normal">
@@ -1159,29 +1146,28 @@ export default function OrderResultEntryPage({
               </div>
 
               {whatsappNotice && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 font-medium">
+                <div className="p-3 bg-blue-50/90 border border-blue-200/60 rounded-xl text-xs text-blue-900 font-medium">
                   {whatsappNotice}
                 </div>
               )}
             </div>
 
             {/* Modal Actions */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-3 border-t border-[#E3EAF3]">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-3 border-t border-white/60">
               <button
                 type="button"
                 onClick={() => setShowWhatsAppModal(false)}
-                className="px-4 py-2 text-xs font-semibold text-[#64748B] bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                className="px-4 py-2 text-xs font-semibold text-[#526581] glass-card hover:bg-white rounded-xl transition-all"
               >
                 Close
               </button>
 
-              {/* Native share option if supported */}
               {typeof navigator !== 'undefined' && 'share' in navigator && (
                 <button
                   type="button"
                   onClick={handleNativeSharePdf}
                   disabled={isGeneratingPdf}
-                  className="px-4 py-2 text-xs font-semibold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 rounded-xl transition-all flex items-center justify-center gap-1.5"
+                  className="px-4 py-2 text-xs font-semibold text-emerald-800 bg-emerald-100/90 hover:bg-emerald-200 rounded-xl transition-all flex items-center justify-center gap-1.5"
                   title="Share authorized PDF directly via device apps"
                 >
                   <Share2 className="w-3.5 h-3.5" />
@@ -1204,21 +1190,20 @@ export default function OrderResultEntryPage({
 
       {/* =========================================================================
           MODAL B: PATHOLOGIST CLINICAL AUTHORIZATION & RELEASE
-          Preserves clinical review safeguards and independent review
           ========================================================================= */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#10213B]/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 border border-[#E3EAF3]">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E3EAF3]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/40 backdrop-blur-md animate-fade-in">
+          <div className="glass-panel border border-white/90 shadow-2xl rounded-3xl max-w-lg w-full p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/60">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100">
+                <div className="p-2 bg-emerald-100/80 text-emerald-700 rounded-xl border border-emerald-200/50">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-[#10213B]">
+                  <h2 className="text-base font-bold text-[#12234A]">
                     Clinical Authorization & Release
                   </h2>
-                  <p className="text-xs text-[#64748B]">
+                  <p className="text-xs text-[#526581]">
                     Order {order.order_number} • {patient.full_name}
                   </p>
                 </div>
@@ -1226,24 +1211,24 @@ export default function OrderResultEntryPage({
               <button
                 type="button"
                 onClick={() => setShowAuthModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                className="text-[#526581] hover:text-[#12234A] p-1.5 rounded-xl glass-pill"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-3 bg-[#F5F8FC] border border-[#E3EAF3] rounded-xl text-xs space-y-1.5">
-              <div className="flex justify-between items-center text-[#10213B] font-semibold">
+            <div className="p-3 glass-card border border-white/60 rounded-2xl text-xs space-y-1.5">
+              <div className="flex justify-between items-center text-[#12234A] font-semibold">
                 <span>Clinical Signatory:</span>
-                <span className="font-bold text-[#1565D8]">Vakiti Padma Reddy (Clinical Director)</span>
+                <span className="font-bold text-[#2563EB]">Vakiti Padma Reddy (Clinical Director)</span>
               </div>
-              <div className="flex justify-between items-center text-[#64748B]">
+              <div className="flex justify-between items-center text-[#526581]">
                 <span>Credentials & Scope:</span>
-                <span className="font-mono text-[#10213B]">
+                <span className="font-mono text-[#12234A]">
                   Laboratory Director • Reg #TSMC-74892 (All Scopes Verified)
                 </span>
               </div>
-              <div className="flex justify-between items-center text-[#64748B]">
+              <div className="flex justify-between items-center text-[#526581]">
                 <span>Laboratory:</span>
                 <span>Rishi Laboratory • Choutuppal</span>
               </div>
@@ -1251,7 +1236,7 @@ export default function OrderResultEntryPage({
 
             <form onSubmit={handleConfirmAuthorizeAndRelease} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#10213B] mb-1.5">
+                <label className="block text-xs font-semibold text-[#12234A] mb-1.5">
                   Clinical Director Verification & Sign-off Notes *
                 </label>
                 <textarea
@@ -1259,11 +1244,11 @@ export default function OrderResultEntryPage({
                   rows={3}
                   value={authComments}
                   onChange={(e) => setAuthComments(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 font-medium outline-none"
+                  className="glass-input w-full px-3 py-2 text-xs rounded-xl font-medium outline-none"
                 />
               </div>
 
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 space-y-1">
+              <div className="p-3 bg-emerald-50/70 border border-emerald-200/60 rounded-2xl text-xs text-emerald-950 space-y-1">
                 <div className="font-bold flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
                   <span>Immediate Diagnostic Report Release</span>
@@ -1273,11 +1258,11 @@ export default function OrderResultEntryPage({
                 </p>
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E3EAF3]">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-white/60">
                 <button
                   type="button"
                   onClick={() => setShowAuthModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-[#64748B] bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                  className="px-4 py-2 text-xs font-semibold text-[#526581] glass-card hover:bg-white rounded-xl transition-all"
                 >
                   Cancel
                 </button>
@@ -1298,8 +1283,8 @@ export default function OrderResultEntryPage({
           MODAL C: CRITICAL VALUE NOTIFICATION LOGGING
           ========================================================================= */}
       {showCritModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#10213B]/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-rose-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/40 backdrop-blur-md animate-fade-in">
+          <div className="glass-panel border border-white/90 shadow-2xl rounded-3xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-rose-100">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-rose-50 text-rose-700 rounded-xl">
@@ -1313,20 +1298,20 @@ export default function OrderResultEntryPage({
               <button
                 type="button"
                 onClick={() => setShowCritModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                className="text-[#526581] hover:text-[#12234A] p-1.5 rounded-xl glass-pill"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-[#64748B] leading-relaxed">
+            <p className="text-xs text-[#526581] leading-relaxed">
               Clinical safety mandates direct verbal communication of panic-level results to the
               attending doctor with explicit read-back verification.
             </p>
 
             <form onSubmit={handleSaveCriticalNotification} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-[#10213B] mb-1">
+                <label className="block text-xs font-semibold text-[#12234A] mb-1">
                   Recipient Physician / Clinic In-Charge *
                 </label>
                 <input
@@ -1335,12 +1320,12 @@ export default function OrderResultEntryPage({
                   placeholder="e.g. Dr. K. Ramesh (Consultant)"
                   value={critRecipient}
                   onChange={(e) => setCritRecipient(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-rose-500 outline-none"
+                  className="glass-input w-full px-3 py-2 text-xs rounded-xl outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#10213B] mb-1">
+                <label className="block text-xs font-semibold text-[#12234A] mb-1">
                   Recipient Phone / Direct Line *
                 </label>
                 <input
@@ -1349,12 +1334,12 @@ export default function OrderResultEntryPage({
                   placeholder="e.g. 9848012345"
                   value={critPhone}
                   onChange={(e) => setCritPhone(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-rose-500 outline-none"
+                  className="glass-input w-full px-3 py-2 text-xs rounded-xl outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#10213B] mb-1">
+                <label className="block text-xs font-semibold text-[#12234A] mb-1">
                   Communication Channel *
                 </label>
                 <select
@@ -1364,7 +1349,7 @@ export default function OrderResultEntryPage({
                       e.target.value as 'phone_call' | 'in_person' | 'secure_messaging'
                     )
                   }
-                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl bg-white font-medium"
+                  className="glass-input w-full px-3 py-2 text-xs rounded-xl font-medium"
                 >
                   <option value="phone_call">Telephone Direct Call (Standard)</option>
                   <option value="in_person">In Person at Laboratory</option>
@@ -1372,7 +1357,7 @@ export default function OrderResultEntryPage({
                 </select>
               </div>
 
-              <div className="p-3.5 bg-rose-50/70 border border-rose-200 rounded-xl space-y-1.5">
+              <div className="p-3.5 bg-rose-50/70 border border-rose-200 rounded-2xl space-y-1.5">
                 <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-rose-900">
                   <input
                     type="checkbox"
@@ -1389,7 +1374,7 @@ export default function OrderResultEntryPage({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#10213B] mb-1">
+                <label className="block text-xs font-semibold text-[#12234A] mb-1">
                   Physician Remarks / Orders (optional)
                 </label>
                 <textarea
@@ -1397,7 +1382,7 @@ export default function OrderResultEntryPage({
                   placeholder="e.g. Advised patient immediate emergency admission"
                   value={critNotes}
                   onChange={(e) => setCritNotes(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-rose-500 outline-none"
+                  className="glass-input w-full px-3 py-2 text-xs rounded-xl outline-none"
                 />
               </div>
 
@@ -1405,7 +1390,7 @@ export default function OrderResultEntryPage({
                 <button
                   type="button"
                   onClick={() => setShowCritModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-[#64748B] bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                  className="px-4 py-2 text-xs font-semibold text-[#526581] glass-card hover:bg-white rounded-xl transition-all"
                 >
                   Cancel
                 </button>
