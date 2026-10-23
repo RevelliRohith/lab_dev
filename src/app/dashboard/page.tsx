@@ -137,14 +137,14 @@ export default function DashboardPage() {
           </div>
 
           {/* Right: Laboratory 3D Visual */}
-          <div className="relative shrink-0 hidden md:flex items-center justify-center">
-            <div className="relative w-56 h-56 lg:w-64 lg:h-64 rounded-3xl p-3 flex items-center justify-center">
+          <div className="relative shrink-0 hidden lg:flex items-center justify-center">
+            <div className="relative w-72 xl:w-84 rounded-2xl overflow-hidden glass-card p-2 border border-white/80 shadow-md">
               <Image
                 src="/images/hero-lab.png"
                 alt="Rishi Diagnostic Laboratory"
-                width={250}
-                height={250}
-                className="object-contain drop-shadow-xl hover:scale-103 transition-transform duration-500"
+                width={614}
+                height={152}
+                className="w-full h-auto object-cover rounded-xl drop-shadow-md hover:scale-102 transition-transform duration-500"
                 priority
               />
             </div>
@@ -565,7 +565,10 @@ export default function DashboardPage() {
                         {act.actor_email || 'Staff user'}
                       </p>
                     </div>
-                    <span className="text-[10px] font-medium text-[#526581] shrink-0">
+                    <span
+                      className="text-[10px] font-medium text-[#526581] shrink-0"
+                      suppressHydrationWarning
+                    >
                       {formatTimeAgo(act.timestamp)}
                     </span>
                   </div>

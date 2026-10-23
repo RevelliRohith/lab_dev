@@ -241,11 +241,13 @@ function TestsContent() {
                       </td>
                       <td className="px-4 py-3.5 text-[#526581]">
                         {s.received_at ? (
-                          <div className="font-medium text-[#12234A]">
-                            Recv: {new Date(s.received_at).toLocaleTimeString()}
+                          <div className="font-medium text-[#12234A]" suppressHydrationWarning>
+                            Recv: {new Date(s.received_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
                           </div>
                         ) : s.collected_at ? (
-                          <div>Coll: {new Date(s.collected_at).toLocaleTimeString()}</div>
+                          <div suppressHydrationWarning>
+                            Coll: {new Date(s.collected_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                          </div>
                         ) : (
                           <span className="text-amber-700 font-semibold">Pending Collection</span>
                         )}

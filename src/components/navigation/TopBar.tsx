@@ -21,9 +21,10 @@ import {
 interface TopBarProps {
   onMenuToggle?: () => void;
   onStaffChange?: () => void;
+  className?: string;
 }
 
-export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
+export function TopBar({ onMenuToggle, onStaffChange, className }: TopBarProps) {
   const router = useRouter();
   const [currentStaff, setCurrentStaff] = useState(globalStore.getActiveStaff());
   const [currentTime, setCurrentTime] = useState('');
@@ -131,7 +132,11 @@ export function TopBar({ onMenuToggle, onStaffChange }: TopBarProps) {
   };
 
   return (
-    <header className="fixed top-3 left-3 right-3 md:left-71 md:right-4 z-30 h-16 rounded-2xl glass-panel shadow-[0_8px_32px_rgba(37,99,235,0.06)] border border-white/60 flex items-center justify-between px-3.5 sm:px-5 transition-all">
+    <header
+      className={`h-16 rounded-2xl glass-panel shadow-[0_8px_32px_rgba(37,99,235,0.06)] border border-white/60 flex items-center justify-between px-3.5 sm:px-5 transition-all w-full ${
+        className || ''
+      }`}
+    >
       {/* 1. Left: Mobile Menu + Rishi Laboratory Branding */}
       <div className="flex items-center gap-3">
         <button

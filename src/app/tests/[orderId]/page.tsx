@@ -938,7 +938,7 @@ export default function OrderResultEntryPage({
           3. Send via WhatsApp — Secondary Action
           4. Download PDF — Secondary Action
           ========================================================================= */}
-      <div className="fixed bottom-3 left-3 right-3 md:left-71 md:right-4 z-40 glass-panel rounded-2xl shadow-[0_12px_40px_rgba(37,99,235,0.14)] border border-white/80 px-4 sm:px-6 py-3.5 transition-all">
+      <div className="fixed bottom-3 left-3 right-3 md:left-[17.5rem] md:right-6 lg:right-8 z-40 glass-panel rounded-2xl shadow-[0_12px_40px_rgba(37,99,235,0.14)] border border-white/80 px-4 sm:px-6 py-3.5 transition-all">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Status & Progress Summary */}
           <div className="flex flex-wrap items-center gap-3">

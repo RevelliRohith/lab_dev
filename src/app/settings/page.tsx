@@ -705,7 +705,7 @@ export default function SettingsAndStaffPage() {
               <tbody className="divide-y divide-white/40">
                 {[...globalStore.auditEvents].reverse().map((ev) => (
                   <tr key={ev.id} className="hover:bg-white/50 transition-colors">
-                    <td className="px-4 py-3 font-mono text-[#526581] whitespace-nowrap">
+                    <td className="px-4 py-3 font-mono text-[#526581] whitespace-nowrap" suppressHydrationWarning>
                       {new Date(ev.timestamp).toLocaleString('en-IN', {
                         day: '2-digit',
                         month: 'short',

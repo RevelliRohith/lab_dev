@@ -267,10 +267,17 @@ class DiagnosticLabStore {
   }
 
   // Audit recording
-  recordAudit(action: string, entity_type: string, entity_id: string, metadata: Record<string, unknown> = {}) {
+  recordAudit(
+    action: string,
+    entity_type: string,
+    entity_id: string,
+    metadata: Record<string, unknown> = {},
+    customId?: string,
+    customTimestamp?: string
+  ) {
     const staff = this.getActiveStaff();
     this.auditEvents.unshift({
-      id: crypto.randomUUID(),
+      id: customId || crypto.randomUUID(),
       lab_id: this.lab.id,
       actor_id: staff.id,
       actor_email: staff.email,
@@ -279,7 +286,7 @@ class DiagnosticLabStore {
       entity_type,
       entity_id,
       metadata,
-      timestamp: new Date().toISOString(),
+      timestamp: customTimestamp || new Date().toISOString(),
     });
   }
 
@@ -362,6 +369,8 @@ class DiagnosticLabStore {
     priority?: OrderPriority;
     discountPercentage?: number;
     discountReason?: string;
+    customId?: string;
+    customCreatedAt?: string;
   }): Order {
     const patient = this.patients.find((p) => p.id === data.patientId);
     if (!patient) throw new Error('Patient not found');
@@ -381,7 +390,8 @@ class DiagnosticLabStore {
     const year = new Date().getFullYear();
     this.seqOrder += 1;
     const orderNumber = `ORD-${year}-${String(this.seqOrder).padStart(4, '0')}`;
-    const orderId = crypto.randomUUID();
+    const orderId = data.customId || crypto.randomUUID();
+    const createdAt = data.customCreatedAt || new Date().toISOString();
 
     // Group tests by required specimen type to create specimens
     const specimenMap = new Map<string, { type: string; container: string }>();
@@ -393,24 +403,26 @@ class DiagnosticLabStore {
     });
 
     const specimens: Specimen[] = [];
+    let specIdx = 0;
     specimenMap.forEach((val) => {
       this.seqSpecimen += 1;
+      specIdx += 1;
       const specimenNumber = `SPEC-${year}-${String(this.seqSpecimen).padStart(4, '0')}`;
       specimens.push({
-        id: crypto.randomUUID(),
+        id: data.customId ? `${data.customId}-spec-${specIdx}` : crypto.randomUUID(),
         lab_id: this.lab.id,
         order_id: orderId,
         specimen_number: specimenNumber,
         specimen_type: val.type,
         container_type: val.container,
         status: 'awaiting_collection',
-        created_at: new Date().toISOString(),
+        created_at: createdAt,
       });
     });
 
     // Create Order Test Snapshots
-    const orderTests = selectedTests.map((t) => {
-      const otId = crypto.randomUUID();
+    const orderTests = selectedTests.map((t, tIdx) => {
+      const otId = data.customId ? `${data.customId}-ot-${tIdx + 1}` : crypto.randomUUID();
       return {
         id: otId,
         order_id: orderId,
@@ -419,8 +431,8 @@ class DiagnosticLabStore {
         test_code_snapshot: t.code,
         test_price_snapshot: t.price,
         department_snapshot: t.department,
-        parameters: t.parameters.map((p) => ({
-          id: crypto.randomUUID(),
+        parameters: t.parameters.map((p, pIdx) => ({
+          id: data.customId ? `${otId}-p-${pIdx + 1}` : crypto.randomUUID(),
           order_test_id: otId,
           test_parameter_id: p.id,
           parameter_name_snapshot: p.name,
@@ -436,9 +448,9 @@ class DiagnosticLabStore {
     // Create Results for each parameter initialized to pending
     const results: Result[] = [];
     orderTests.forEach((ot) => {
-      ot.parameters.forEach((param) => {
+      ot.parameters.forEach((param, rIdx) => {
         results.push({
-          id: crypto.randomUUID(),
+          id: data.customId ? `${ot.id}-res-${rIdx + 1}` : crypto.randomUUID(),
           order_test_parameter_id: param.id,
           order_id: orderId,
           disposition: 'performed',
@@ -457,8 +469,9 @@ class DiagnosticLabStore {
     const discountAmount = Math.round(((subtotal * discountPct) / 100) * 100) / 100;
     const totalAmount = Math.round((subtotal - discountAmount) * 100) / 100;
 
+    const invoiceId = data.customId ? `${data.customId}-inv` : crypto.randomUUID();
     const invoice: Invoice = {
-      id: crypto.randomUUID(),
+      id: invoiceId,
       lab_id: this.lab.id,
       order_id: orderId,
       invoice_number: invoiceNumber,
@@ -471,9 +484,9 @@ class DiagnosticLabStore {
       amount_refunded: 0,
       balance_due: totalAmount,
       status: 'unpaid',
-      items: orderTests.map((ot) => ({
-        id: crypto.randomUUID(),
-        invoice_id: '',
+      items: orderTests.map((ot, itemIdx) => ({
+        id: data.customId ? `${invoiceId}-item-${itemIdx + 1}` : crypto.randomUUID(),
+        invoice_id: invoiceId,
         order_test_id: ot.id,
         description: `${ot.test_name_snapshot} (${ot.test_code_snapshot})`,
         unit_price: ot.test_price_snapshot,
@@ -482,7 +495,7 @@ class DiagnosticLabStore {
       })),
       payments: [],
       refunds: [],
-      created_at: new Date().toISOString(),
+      created_at: createdAt,
     };
     invoice.items.forEach((it) => (it.invoice_id = invoice.id));
 
@@ -497,8 +510,8 @@ class DiagnosticLabStore {
       status: 'created',
       payment_status: 'unpaid',
       created_by: staff.id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: createdAt,
+      updated_at: createdAt,
       patient,
       tests: orderTests,
       specimens,
@@ -544,7 +557,13 @@ class DiagnosticLabStore {
   }
 
   // Specimen Actions
-  updateSpecimenStatus(specimenId: string, action: 'collect' | 'receive' | 'collect_and_receive' | 'complete' | 'reject' | 'cancel', reason?: string, notes?: string): Specimen {
+  updateSpecimenStatus(
+    specimenId: string,
+    action: 'collect' | 'receive' | 'collect_and_receive' | 'complete' | 'reject' | 'cancel',
+    reason?: string,
+    notes?: string,
+    customTimestamp?: string
+  ): Specimen {
     const staff = this.getActiveStaff();
     let targetSpecimen: Specimen | undefined;
     let targetOrder: Order | undefined;
@@ -560,7 +579,7 @@ class DiagnosticLabStore {
 
     if (!targetSpecimen || !targetOrder) throw new Error('Specimen not found');
 
-    const now = new Date().toISOString();
+    const now = customTimestamp || new Date().toISOString();
 
     if (action === 'collect_and_receive') {
       if (['rejected', 'cancelled', 'completed'].includes(targetSpecimen.status)) {
@@ -725,13 +744,16 @@ class DiagnosticLabStore {
     readBackConfirmed: boolean;
     escalationStatus: 'pending_acknowledgement' | 'resolved' | 'escalated_to_supervisor';
     notes?: string;
+    customId?: string;
+    customAttemptedAt?: string;
   }): CriticalNotification {
     const order = this.orders.find((o) => o.id === data.orderId);
     if (!order) throw new Error('Order not found');
 
     const staff = this.getActiveStaff();
+    const attemptedAt = data.customAttemptedAt || new Date().toISOString();
     const notif: CriticalNotification = {
-      id: crypto.randomUUID(),
+      id: data.customId || crypto.randomUUID(),
       order_id: data.orderId,
       order_test_parameter_id: data.orderTestParameterId,
       parameter_name: data.parameterName,
@@ -739,8 +761,8 @@ class DiagnosticLabStore {
       recipient_name: data.recipientName,
       recipient_role_phone: data.recipientRolePhone,
       notification_method: data.notificationMethod,
-      attempted_at: new Date().toISOString(),
-      acknowledged_at: data.readBackConfirmed ? new Date().toISOString() : undefined,
+      attempted_at: attemptedAt,
+      acknowledged_at: data.readBackConfirmed ? attemptedAt : undefined,
       read_back_confirmed: data.readBackConfirmed,
       escalation_status: data.escalationStatus,
       notes: data.notes,
@@ -748,17 +770,29 @@ class DiagnosticLabStore {
     };
 
     order.critical_notifications.unshift(notif);
-    this.recordAudit('critical_result_communicated', 'critical_notifications', notif.id, {
-      order_number: order.order_number,
-      recipient: data.recipientName,
-      read_back_confirmed: data.readBackConfirmed,
-    });
+    this.recordAudit(
+      'critical_result_communicated',
+      'critical_notifications',
+      notif.id,
+      {
+        order_number: order.order_number,
+        recipient: data.recipientName,
+        read_back_confirmed: data.readBackConfirmed,
+      },
+      data.customId ? `${data.customId}-audit` : undefined,
+      attemptedAt
+    );
 
     return notif;
   }
 
   // Submit for Review
-  submitForReview(orderId: string, qaAttestationNotes: string): ReviewSubmission {
+  submitForReview(
+    orderId: string,
+    qaAttestationNotes: string,
+    customId?: string,
+    customSubmittedAt?: string
+  ): ReviewSubmission {
     const order = this.orders.find((o) => o.id === orderId);
     if (!order) throw new Error('Order not found');
 
@@ -797,11 +831,12 @@ class DiagnosticLabStore {
       if (s.status === 'pending') s.status = 'invalidated_by_edit';
     });
 
+    const submittedAt = customSubmittedAt || new Date().toISOString();
     const newSub: ReviewSubmission = {
-      id: crypto.randomUUID(),
+      id: customId || crypto.randomUUID(),
       order_id: order.id,
       submitted_by: staff.id,
-      submitted_at: new Date().toISOString(),
+      submitted_at: submittedAt,
       status: 'pending',
       qa_checks_attested: true,
       qa_attestation_notes: qaAttestationNotes,
@@ -809,9 +844,16 @@ class DiagnosticLabStore {
     };
 
     order.submissions.unshift(newSub);
-    this.recordAudit('review_submitted', 'review_submissions', newSub.id, {
-      order_number: order.order_number,
-    });
+    this.recordAudit(
+      'review_submitted',
+      'review_submissions',
+      newSub.id,
+      {
+        order_number: order.order_number,
+      },
+      customId ? `${customId}-audit` : undefined,
+      submittedAt
+    );
 
     return newSub;
   }
@@ -842,7 +884,13 @@ class DiagnosticLabStore {
   }
 
   // Authorize Clinical Report (Transaction)
-  authorizeReport(orderId: string, submissionId: string, comments: string = 'Authorized'): ReportVersion {
+  authorizeReport(
+    orderId: string,
+    submissionId: string,
+    comments: string = 'Authorized',
+    customId?: string,
+    customAuthorizedAt?: string
+  ): ReportVersion {
     const order = this.orders.find((o) => o.id === orderId);
     if (!order) throw new Error('Order not found');
 
@@ -977,33 +1025,45 @@ class DiagnosticLabStore {
       })),
     };
 
+    const authAt = customAuthorizedAt || new Date().toISOString();
     const newReport: ReportVersion = {
-      id: crypto.randomUUID(),
+      id: customId || crypto.randomUUID(),
       order_id: order.id,
       version_number: versionNum,
       report_number: reportNumber,
       status: 'authorized',
       report_snapshot: snapshot,
       authorized_by: reviewer.id,
-      authorized_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
+      authorized_at: authAt,
+      created_at: authAt,
     };
 
     sub.status = 'authorized';
     order.report_versions.unshift(newReport);
 
-    this.recordAudit('report_authorized', 'report_versions', newReport.id, {
-      report_number: reportNumber,
-      version: versionNum,
-      reviewer: reviewer.full_name,
-      comments,
-    });
+    this.recordAudit(
+      'report_authorized',
+      'report_versions',
+      newReport.id,
+      {
+        report_number: reportNumber,
+        version: versionNum,
+        reviewer: reviewer.full_name,
+        comments,
+      },
+      customId ? `${customId}-audit` : undefined,
+      authAt
+    );
 
     return newReport;
   }
 
   // Release Report (requires stored PDF)
-  releaseReport(reportVersionId: string, pdfStoragePath: string): ReportVersion {
+  releaseReport(
+    reportVersionId: string,
+    pdfStoragePath: string,
+    customReleasedAt?: string
+  ): ReportVersion {
     let targetReport: ReportVersion | undefined;
     let targetOrder: Order | undefined;
 
@@ -1022,7 +1082,7 @@ class DiagnosticLabStore {
     }
 
     const staff = this.getActiveStaff();
-    const now = new Date().toISOString();
+    const now = customReleasedAt || new Date().toISOString();
 
     targetReport.status = 'released';
     targetReport.pdf_storage_path = pdfStoragePath;
@@ -1032,10 +1092,17 @@ class DiagnosticLabStore {
     targetOrder.status = 'completed';
     targetOrder.updated_at = now;
 
-    this.recordAudit('report_released', 'report_versions', targetReport.id, {
-      report_number: targetReport.report_number,
-      pdf_path: pdfStoragePath,
-    });
+    this.recordAudit(
+      'report_released',
+      'report_versions',
+      targetReport.id,
+      {
+        report_number: targetReport.report_number,
+        pdf_path: pdfStoragePath,
+      },
+      undefined,
+      now
+    );
 
     return targetReport;
   }
@@ -1047,6 +1114,8 @@ class DiagnosticLabStore {
     paymentMethod: 'cash' | 'card' | 'bank_transfer' | 'check';
     referenceNote?: string;
     idempotencyKey: string;
+    customId?: string;
+    customRecordedAt?: string;
   }): Payment {
     const invoice = this.invoices.find((inv) => inv.id === data.invoiceId);
     if (!invoice) throw new Error('Invoice not found');
@@ -1061,9 +1130,10 @@ class DiagnosticLabStore {
     this.seqPayment += 1;
     const paymentNumber = `PAY-${year}-${String(this.seqPayment).padStart(4, '0')}`;
     const staff = this.getActiveStaff();
+    const recordedAt = data.customRecordedAt || new Date().toISOString();
 
     const payment: Payment = {
-      id: crypto.randomUUID(),
+      id: data.customId || crypto.randomUUID(),
       invoice_id: invoice.id,
       payment_number: paymentNumber,
       amount: data.amount,
@@ -1071,7 +1141,7 @@ class DiagnosticLabStore {
       reference_note: data.referenceNote,
       idempotency_key: data.idempotencyKey,
       recorded_by: staff.id,
-      recorded_at: new Date().toISOString(),
+      recorded_at: recordedAt,
     };
 
     invoice.payments.push(payment);
@@ -1088,15 +1158,22 @@ class DiagnosticLabStore {
     const order = this.orders.find((o) => o.id === invoice.order_id);
     if (order) {
       order.payment_status = invoice.status;
-      order.updated_at = new Date().toISOString();
+      order.updated_at = recordedAt;
     }
 
-    this.recordAudit('payment_recorded', 'payments', payment.id, {
-      payment_number: paymentNumber,
-      amount: data.amount,
-      invoice_number: invoice.invoice_number,
-      balance_remaining: invoice.balance_due,
-    });
+    this.recordAudit(
+      'payment_recorded',
+      'payments',
+      payment.id,
+      {
+        payment_number: paymentNumber,
+        amount: data.amount,
+        invoice_number: invoice.invoice_number,
+        balance_remaining: invoice.balance_due,
+      },
+      data.customId ? `${data.customId}-audit` : undefined,
+      recordedAt
+    );
 
     return payment;
   }
@@ -1215,11 +1292,19 @@ class DiagnosticLabStore {
       orderingPhysician: 'Dr. Gregory House, MD',
       clinicalIndication: 'Pre-op baseline evaluation',
       priority: 'routine',
+      customId: 'd0000000-0000-0000-0000-000000000001',
+      customCreatedAt: '2026-10-23T08:00:00.000Z',
     });
 
     // Mark specimen collected & received
     const spec1 = ord1.specimens[0];
-    this.updateSpecimenStatus(spec1.id, 'collect_and_receive');
+    this.updateSpecimenStatus(
+      spec1.id,
+      'collect_and_receive',
+      undefined,
+      undefined,
+      '2026-10-23T08:15:00.000Z'
+    );
 
     // Fill results (normal)
     ord1.results.forEach((r) => {
@@ -1249,15 +1334,32 @@ class DiagnosticLabStore {
       paymentMethod: 'card',
       idempotencyKey: 'SEED-PAY-001',
       referenceNote: 'Visa ending 4120',
+      customId: 'pay-seed-001',
+      customRecordedAt: '2026-10-23T08:30:00.000Z',
     });
 
     // Submit for review
-    const sub1 = this.submitForReview(ord1.id, 'Routine daily QC for hematology analyzer verified within +/- 1.5 SD.');
+    const sub1 = this.submitForReview(
+      ord1.id,
+      'Routine daily QC for hematology analyzer verified within +/- 1.5 SD.',
+      'sub-seed-001',
+      '2026-10-23T09:00:00.000Z'
+    );
 
     // Switch to reviewer to authorize (Independent: David entered results, Dr Vance authorizes)
     this.activeStaffId = this.staff[2].id; // Dr Vance
-    const rep1 = this.authorizeReport(ord1.id, sub1.id, 'All clinical indices normal. Released.');
-    this.releaseReport(rep1.id, `reports/${rep1.report_number}.pdf`);
+    const rep1 = this.authorizeReport(
+      ord1.id,
+      sub1.id,
+      'All clinical indices normal. Released.',
+      'rep-seed-001',
+      '2026-10-23T09:15:00.000Z'
+    );
+    this.releaseReport(
+      rep1.id,
+      `reports/${rep1.report_number}.pdf`,
+      '2026-10-23T09:20:00.000Z'
+    );
 
     // 2. Order in "awaiting review" state with a CRITICAL value + documented communication
     this.activeStaffId = this.staff[1].id; // Tech David
@@ -1268,9 +1370,17 @@ class DiagnosticLabStore {
       orderingPhysician: 'Dr. John Watson, MD',
       clinicalIndication: 'Severe fatigue, hypoglycemia rule-out',
       priority: 'urgent',
+      customId: 'd0000000-0000-0000-0000-000000000002',
+      customCreatedAt: '2026-10-23T09:30:00.000Z',
     });
 
-    this.updateSpecimenStatus(ord2.specimens[0].id, 'collect_and_receive');
+    this.updateSpecimenStatus(
+      ord2.specimens[0].id,
+      'collect_and_receive',
+      undefined,
+      undefined,
+      '2026-10-23T09:45:00.000Z'
+    );
     const gluRes = ord2.results[0];
     this.updateResult({
       orderId: ord2.id,
@@ -1291,11 +1401,15 @@ class DiagnosticLabStore {
       readBackConfirmed: true,
       escalationStatus: 'resolved',
       notes: 'Read-back confirmed verbatim. Clinic staff preparing stat oral glucose protocol.',
+      customId: 'crit-seed-001',
+      customAttemptedAt: '2026-10-23T10:00:00.000Z',
     });
 
     this.submitForReview(
       ord2.id,
-      'Glucose hexokinase calibration run and verified with Level 1 & Level 2 controls.'
+      'Glucose hexokinase calibration run and verified with Level 1 & Level 2 controls.',
+      'sub-seed-002',
+      '2026-10-23T10:15:00.000Z'
     );
 
     // 3. Order in "awaiting collection" state (Lipid panel)
@@ -1306,6 +1420,8 @@ class DiagnosticLabStore {
       orderingPhysician: 'Dr. Sarah Connor, MD',
       clinicalIndication: 'Annual wellness check',
       priority: 'routine',
+      customId: 'd0000000-0000-0000-0000-000000000003',
+      customCreatedAt: '2026-10-23T10:30:00.000Z',
     });
 
     // Reset default active staff to Lab Staff

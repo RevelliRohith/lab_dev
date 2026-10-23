@@ -287,7 +287,7 @@ export default function ReportsManagementPage() {
                             </div>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-[#526581]">
+                        <td className="px-4 py-3 text-[#526581]" suppressHydrationWarning>
                           {rep.released_at
                             ? new Date(rep.released_at).toLocaleDateString('en-IN', {
                                 day: '2-digit',

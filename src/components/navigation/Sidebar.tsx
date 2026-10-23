@@ -25,7 +25,7 @@ export const navigationItems = [
   { name: 'Settings & Staff', href: '/settings', icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ className }: { className?: string } = {}) {
   const pathname = usePathname();
   const [, setTick] = useState(0);
 
@@ -90,8 +90,12 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:top-3 md:left-3 md:bottom-3 z-30 glass-panel rounded-2xl shadow-[0_8px_32px_rgba(37,99,235,0.06)] border border-white/60 overflow-hidden transition-all">
-      <div className="flex flex-col flex-1 min-h-0 p-3.5 justify-between">
+    <aside
+      className={`glass-panel rounded-2xl shadow-[0_8px_32px_rgba(37,99,235,0.06)] border border-white/60 overflow-hidden transition-all flex flex-col ${
+        className || 'h-[calc(100vh-1.5rem)] sticky top-3 w-full'
+      }`}
+    >
+      <div className="flex flex-col flex-1 min-h-0 p-3.5 justify-between overflow-y-auto">
         {/* Top: Laboratory Branding */}
         <div>
           <Link

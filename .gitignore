@@ -24,3 +24,10 @@
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Browser test artifacts
+.chrome-profile/
+.chrome-tmp/
+screenshot*.png
+screenshots/
+
