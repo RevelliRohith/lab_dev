@@ -13,6 +13,7 @@ import {
   Settings,
   Phone,
   CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 
 export const navigationItems = [
@@ -48,21 +49,21 @@ export function Sidebar() {
   const getBadge = (name: string) => {
     if (name === 'Tests & Results' && awaitingSpecimens > 0) {
       return (
-        <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+        <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
           {awaitingSpecimens}
         </span>
       );
     }
     if (name === 'Reports' && awaitingReview > 0) {
       return (
-        <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+        <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-[#1565D8] border border-blue-200">
           {awaitingReview}
         </span>
       );
     }
     if (name === 'Patients & Billing' && unpaidInvoices > 0) {
       return (
-        <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+        <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
           {unpaidInvoices}
         </span>
       );
@@ -71,17 +72,19 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 pt-16 bg-slate-900 border-r border-slate-800 text-slate-300">
+    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 pt-17 bg-white border-r border-[#E3EAF3] text-[#172B4D] shadow-[1px_0_4px_rgba(16,33,59,0.02)]">
       <div className="flex flex-col flex-1 min-h-0 pt-5 pb-4">
-        {/* Section Title */}
-        <div className="px-5 mb-3 flex items-center justify-between">
-          <p className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+        {/* Module Header */}
+        <div className="px-5 mb-2.5 flex items-center justify-between">
+          <p className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase">
             Clinical Modules
           </p>
-          <span className="text-[10px] font-semibold text-teal-400">6 Core</span>
+          <span className="text-[10px] font-bold text-[#1565D8] bg-blue-50 px-2 py-0.5 rounded-full">
+            6 Modules
+          </span>
         </div>
 
-        {/* Nav Links */}
+        {/* Navigation Items */}
         <nav className="flex-1 px-3 space-y-1.5" aria-label="Sidebar Navigation">
           {navigationItems.map((item) => {
             const Icon = item.icon;
@@ -93,15 +96,15 @@ export function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                   isActive
-                    ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-sm ring-1 ring-white/10'
-                    : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                    ? 'bg-[#1565D8] text-white shadow-sm ring-1 ring-[#1565D8]'
+                    : 'text-[#172B4D] hover:bg-[#F5F8FC] hover:text-[#1565D8]'
                 }`}
               >
                 <Icon
                   className={`w-4 h-4 flex-shrink-0 ${
-                    isActive ? 'text-white' : 'text-slate-400'
+                    isActive ? 'text-white' : 'text-[#64748B]'
                   }`}
                 />
                 <span className="truncate">{item.name}</span>
@@ -111,22 +114,22 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Footer info in sidebar */}
-        <div className="p-4 mx-3 rounded-xl bg-slate-800/60 border border-slate-700/60 text-xs text-slate-400 space-y-2">
+        {/* Sidebar Footer Info Card */}
+        <div className="p-3.5 mx-3 rounded-2xl bg-[#F5F8FC] border border-[#E3EAF3] text-xs space-y-2">
           <div>
-            <p className="font-bold text-slate-200">Rishi Laboratory</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">Choutuppal, Telangana</p>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <p className="font-extrabold text-[#10213B] text-xs">Rishi Laboratory</p>
+            </div>
+            <p className="text-[11px] text-[#64748B] mt-0.5">Choutuppal, Telangana</p>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-teal-300 font-medium">
-            <Phone className="w-3 h-3 text-teal-400" />
-            <span>9848228971</span>
+          <div className="flex items-center gap-1.5 text-[11px] text-[#0D9488] font-bold">
+            <Phone className="w-3 h-3 text-[#0D9488]" />
+            <span>+91 98482 28971</span>
           </div>
-          <div className="pt-2 border-t border-slate-700/60 flex items-center justify-between text-[10px]">
-            <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Online (Port 3005)
-            </span>
-            <span className="text-slate-400">LIS v1.0</span>
+          <div className="pt-2 border-t border-[#E3EAF3] flex items-center justify-between text-[10px] text-[#64748B]">
+            <span className="font-semibold text-emerald-600">Online • Port 3005</span>
+            <span className="font-mono">LIS v1.0</span>
           </div>
         </div>
       </div>

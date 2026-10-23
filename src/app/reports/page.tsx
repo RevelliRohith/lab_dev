@@ -47,7 +47,9 @@ export default function ReportsManagementPage() {
 
   // Authorize Modal State
   const [authModalOrder, setAuthModalOrder] = useState<Order | null>(null);
-  const [authComments, setAuthComments] = useState('Clinically verified and authorized for diagnostic release.');
+  const [authComments, setAuthComments] = useState(
+    'Clinically verified and authorized for diagnostic release.'
+  );
 
   // Amendment Modal State
   const [amendModalReport, setAmendModalReport] = useState<ReportVersion | null>(null);
@@ -167,7 +169,9 @@ export default function ReportsManagementPage() {
       if (!sub) throw new Error('No pending submission');
 
       globalStore.returnForCorrection(returnModalOrder.id, sub.id, returnComments);
-      setActionSuccess(`Submission returned to lab technologist for correction: "${returnComments}"`);
+      setActionSuccess(
+        `Submission returned to lab technologist for correction: "${returnComments}"`
+      );
       setReturnModalOrder(null);
       setReturnComments('');
       setTick((t) => t + 1);
@@ -185,10 +189,14 @@ export default function ReportsManagementPage() {
 
     try {
       if (!amendReason || amendReason.trim().length < 10) {
-        throw new Error('A detailed clinical reason (minimum 10 characters) is required for report amendments');
+        throw new Error(
+          'A detailed clinical reason (minimum 10 characters) is required for report amendments'
+        );
       }
       if (!amendNotes || amendNotes.trim().length < 10) {
-        throw new Error('Documented communication to the ordering physician regarding material corrections is required');
+        throw new Error(
+          'Documented communication to the ordering physician regarding material corrections is required'
+        );
       }
 
       // Mark prior version superseded
@@ -220,43 +228,48 @@ export default function ReportsManagementPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3EAF3]">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Diagnostic Reports & Review</h1>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+            <h1 className="text-2xl font-extrabold text-[#10213B] tracking-tight">
+              Diagnostic Reports &amp; Review
+            </h1>
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#1565D8] border border-blue-200">
               Pathology Workspace
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-[#64748B] mt-1">
             Clinical pathologist sign-off, independent review enforcement, official A4 PDF generation, and versioned amendments.
           </p>
         </div>
 
         {/* Pathologist Verification Badge */}
-        <div className="flex items-center gap-3 bg-white border border-slate-200/90 rounded-2xl px-4 py-2.5 shadow-sm">
-          <div className="w-9 h-9 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs">
+        <div className="flex items-center gap-3 bg-white border border-[#E3EAF3] rounded-2xl px-4 py-2.5 shadow-[0_1px_3px_rgba(16,33,59,0.04)]">
+          <div className="w-9 h-9 rounded-xl bg-[#1565D8] text-white flex items-center justify-center font-bold text-xs shadow-xs">
             DR
           </div>
           <div>
-            <div className="text-[11px] text-slate-400 font-medium">Verified Signatory</div>
-            <div className="text-xs font-bold text-slate-900">Dr. Rishika (Pathologist)</div>
-            <div className="text-[10px] text-teal-700 font-mono">Reg #TSMC-74892 • All Scopes</div>
+            <div className="text-[11px] text-[#64748B] font-medium">Verified Signatory</div>
+            <div className="text-xs font-bold text-[#10213B]">Dr. Rishika (Pathologist)</div>
+            <div className="text-[10px] text-[#1565D8] font-mono">Reg #TSMC-74892 • All Scopes</div>
           </div>
         </div>
       </div>
 
       {/* Role Notice Banner if active user is not Dr. Rishika / Authorized Reviewer */}
       {!isReviewer && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
             <div>
-              <span className="font-bold">Active Staff: {activeStaff.full_name} ({activeStaff.roles.join(', ')})</span>
+              <span className="font-bold">
+                Active Staff: {activeStaff.full_name} ({activeStaff.roles.join(', ')})
+              </span>
               <p className="text-[11px] text-amber-800 mt-0.5">
-                Clinical report authorization is legally restricted to verified staff holding the <strong>Authorized Reviewer</strong> role. You can inspect submissions and download released reports. To authorize or return submissions, switch to <strong>Dr. Rishika</strong> in the top header.
+                Clinical report authorization is legally restricted to verified staff holding the{' '}
+                <strong>Authorized Reviewer</strong> role. You can inspect submissions and download released reports. To authorize or return submissions, switch to <strong>Dr. Rishika</strong> in the top header.
               </p>
             </div>
           </div>
@@ -265,26 +278,26 @@ export default function ReportsManagementPage() {
 
       {/* Messages */}
       {actionError && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-center gap-3 shadow-sm">
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-center gap-3 shadow-xs">
           <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
           <div className="font-medium">{actionError}</div>
         </div>
       )}
       {actionSuccess && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-800 flex items-center gap-3 shadow-sm">
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-800 flex items-center gap-3 shadow-xs">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <div className="font-medium">{actionSuccess}</div>
         </div>
       )}
 
       {/* Tab Navigation */}
-      <div className="flex border-b border-slate-200 gap-6">
+      <div className="flex border-b border-[#E3EAF3] gap-6">
         <button
           onClick={() => setActiveTab('queue')}
           className={`pb-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all ${
             activeTab === 'queue'
-              ? 'border-teal-600 text-teal-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-[#1565D8] text-[#1565D8]'
+              : 'border-transparent text-[#64748B] hover:text-[#10213B]'
           }`}
         >
           <FileCheck2 className="w-4 h-4" />
@@ -304,13 +317,13 @@ export default function ReportsManagementPage() {
           onClick={() => setActiveTab('archive')}
           className={`pb-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all ${
             activeTab === 'archive'
-              ? 'border-teal-600 text-teal-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-[#1565D8] text-[#1565D8]'
+              : 'border-transparent text-[#64748B] hover:text-[#10213B]'
           }`}
         >
           <History className="w-4 h-4" />
           <span>Released Reports Library</span>
-          <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-slate-100 text-slate-600">
+          <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[#F5F8FC] text-[#172B4D] border border-[#E3EAF3]">
             {releasedReports.length}
           </span>
         </button>
@@ -320,17 +333,17 @@ export default function ReportsManagementPage() {
       {activeTab === 'queue' && (
         <div className="space-y-4">
           {pendingOrders.length === 0 ? (
-            <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center space-y-3 shadow-sm">
+            <div className="bg-white border border-[#E3EAF3] rounded-2xl p-12 text-center space-y-3 shadow-[0_1px_3px_rgba(16,33,59,0.04)]">
               <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">Review Queue Clear</h3>
-              <p className="text-xs text-slate-500 max-w-md mx-auto">
+              <h3 className="text-base font-bold text-[#10213B]">Review Queue Clear</h3>
+              <p className="text-xs text-[#64748B] max-w-md mx-auto">
                 There are no diagnostic orders currently awaiting clinical review or authorization. New submissions will appear here once technologist testing is complete.
               </p>
               <Link
                 href="/tests"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#F5F8FC] hover:bg-[#E3EAF3] text-[#172B4D] text-xs font-semibold rounded-xl border border-[#E3EAF3] transition-all"
               >
                 <span>View Result Entry Worklist</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -341,7 +354,9 @@ export default function ReportsManagementPage() {
               {pendingOrders.map((ord) => {
                 const sub = ord.submissions.find((s) => s.status === 'pending')!;
                 const hasCritical = ord.results.some((r) => r.flag === 'critical');
-                const critCommunicated = ord.critical_notifications.some((cn) => cn.read_back_confirmed);
+                const critCommunicated = ord.critical_notifications.some(
+                  (cn) => cn.read_back_confirmed
+                );
 
                 // Self approval check: Can reviewer authorize?
                 const isAuthorSelf = ord.results.some((r) => r.entered_by === activeStaff.id);
@@ -349,18 +364,22 @@ export default function ReportsManagementPage() {
                 return (
                   <div
                     key={ord.id}
-                    className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all space-y-4"
+                    className="bg-white border border-[#E3EAF3] rounded-2xl p-6 shadow-[0_1px_3px_rgba(16,33,59,0.04)] hover:shadow-md transition-all space-y-4"
                   >
                     {/* Top Row: Order Details */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-[#E3EAF3]">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold text-sm shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1565D8] flex items-center justify-center font-bold text-sm shrink-0">
                           {ord.patient?.full_name.substring(0, 2).toUpperCase()}
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900 text-base">{ord.patient?.full_name}</span>
-                            <span className="font-mono text-xs text-slate-500 font-semibold">{ord.order_number}</span>
+                            <span className="font-bold text-[#10213B] text-base">
+                              {ord.patient?.full_name}
+                            </span>
+                            <span className="font-mono text-xs text-[#64748B] font-semibold">
+                              {ord.order_number}
+                            </span>
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                                 ord.priority === 'stat'
@@ -371,44 +390,62 @@ export default function ReportsManagementPage() {
                               {ord.priority}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            MRN: <strong className="text-slate-700">{ord.patient?.patient_number}</strong> • Ordered by: <strong>{ord.ordering_physician || 'Self / Walk-in'}</strong>
+                          <p className="text-xs text-[#64748B] mt-0.5">
+                            MRN:{' '}
+                            <strong className="text-[#10213B]">
+                              {ord.patient?.patient_number}
+                            </strong>{' '}
+                            • Ordered by:{' '}
+                            <strong>{ord.ordering_physician || 'Self / Walk-in'}</strong>
                           </p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400 flex items-center gap-1">
+                        <span className="text-xs text-[#64748B] flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />
-                          Submitted {new Date(sub.submitted_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                          Submitted{' '}
+                          {new Date(sub.submitted_at).toLocaleTimeString('en-IN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
                         </span>
                       </div>
                     </div>
 
                     {/* Middle: Tests & Results Highlights */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-                        <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Diagnostic Panels</div>
-                        <div className="font-bold text-slate-800">
+                      <div className="p-3 bg-[#F5F8FC] rounded-xl border border-[#E3EAF3]">
+                        <div className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-1">
+                          Diagnostic Panels
+                        </div>
+                        <div className="font-bold text-[#10213B]">
                           {ord.tests.map((t) => t.test_name_snapshot).join(', ')}
                         </div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">
+                        <div className="text-[11px] text-[#64748B] mt-0.5">
                           {ord.results.length} total parameters tested
                         </div>
                       </div>
 
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-                        <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Technologist QC Attestation</div>
-                        <div className="text-slate-800 font-medium italic truncate" title={sub.qa_attestation_notes}>
-                          "{sub.qa_attestation_notes}"
+                      <div className="p-3 bg-[#F5F8FC] rounded-xl border border-[#E3EAF3]">
+                        <div className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-1">
+                          Technologist QC Attestation
                         </div>
-                        <div className="text-[11px] text-teal-700 font-semibold mt-0.5">
+                        <div
+                          className="text-[#10213B] font-medium italic truncate"
+                          title={sub.qa_attestation_notes}
+                        >
+                          &quot;{sub.qa_attestation_notes}&quot;
+                        </div>
+                        <div className="text-[11px] text-[#1565D8] font-semibold mt-0.5">
                           Daily calibration verified
                         </div>
                       </div>
 
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-                        <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Safety Invariants</div>
+                      <div className="p-3 bg-[#F5F8FC] rounded-xl border border-[#E3EAF3]">
+                        <div className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-1">
+                          Safety Invariants
+                        </div>
                         {hasCritical ? (
                           critCommunicated ? (
                             <span className="inline-flex items-center gap-1 text-emerald-700 font-bold">
@@ -422,7 +459,7 @@ export default function ReportsManagementPage() {
                             </span>
                           )
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-slate-700 font-medium">
+                          <span className="inline-flex items-center gap-1 text-[#172B4D] font-medium">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                             Standard values within bounds
                           </span>
@@ -444,15 +481,19 @@ export default function ReportsManagementPage() {
                           type="button"
                           onClick={() => handlePreviewDraft(ord)}
                           disabled={isGeneratingPdf === ord.id}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#172B4D] bg-[#F5F8FC] hover:bg-[#E3EAF3] rounded-xl border border-[#E3EAF3] transition-all disabled:opacity-50"
                         >
-                          <Eye className="w-3.5 h-3.5 text-slate-500" />
-                          <span>{isGeneratingPdf === ord.id ? 'Generating Preview...' : 'Preview Clinical Draft PDF'}</span>
+                          <Eye className="w-3.5 h-3.5 text-[#64748B]" />
+                          <span>
+                            {isGeneratingPdf === ord.id
+                              ? 'Generating Preview...'
+                              : 'Preview Clinical Draft PDF'}
+                          </span>
                         </button>
 
                         <Link
                           href={`/tests/${ord.id}`}
-                          className="inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-50 transition-all"
+                          className="inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold text-[#64748B] hover:text-[#10213B] rounded-xl hover:bg-[#F5F8FC] transition-all"
                         >
                           <span>Inspect Raw Values</span>
                         </Link>
@@ -474,9 +515,11 @@ export default function ReportsManagementPage() {
                               disabled={isAuthorSelf || (hasCritical && !critCommunicated)}
                               onClick={() => {
                                 setAuthModalOrder(ord);
-                                setAuthComments('Clinically verified and authorized for diagnostic release.');
+                                setAuthComments(
+                                  'Clinically verified and authorized for diagnostic release.'
+                                );
                               }}
-                              className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl shadow-md transition-all"
+                              className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-[#1565D8] hover:bg-[#104fad] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl shadow-md transition-all"
                             >
                               <ShieldCheck className="w-4 h-4" />
                               <span>Authorize & Release Report</span>
@@ -495,7 +538,7 @@ export default function ReportsManagementPage() {
 
       {/* TAB 2: RELEASED REPORTS ARCHIVE */}
       {activeTab === 'archive' && (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden space-y-4 p-6">
+        <div className="bg-white border border-[#E3EAF3] rounded-2xl shadow-[0_1px_3px_rgba(16,33,59,0.04)] overflow-hidden space-y-4 p-6">
           {/* Search bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative max-w-md w-full">
@@ -505,17 +548,17 @@ export default function ReportsManagementPage() {
                 placeholder="Search released reports by patient name or report number..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500"
+                className="w-full pl-10 pr-4 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-[#1565D8]/20 focus:border-[#1565D8] outline-none"
               />
             </div>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-[#64748B]">
               Showing {filteredReports.length} released clinical documents
             </span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-600">
-              <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+            <table className="w-full text-left text-xs text-[#172B4D]">
+              <thead className="bg-[#F5F8FC] text-[#64748B] font-semibold border-b border-[#E3EAF3]">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Report Reference</th>
                   <th className="px-4 py-3 font-semibold">Patient & Order</th>
@@ -526,20 +569,24 @@ export default function ReportsManagementPage() {
                   <th className="px-4 py-3 font-semibold text-right">Official Document</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#E3EAF3]">
                 {filteredReports.map((rep) => {
                   const order = globalStore.orders.find((o) => o.id === rep.order_id);
                   return (
-                    <tr key={rep.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="px-4 py-3 font-mono font-bold text-slate-900">
+                    <tr key={rep.id} className="hover:bg-[#F5F8FC]/80 transition-colors">
+                      <td className="px-4 py-3 font-mono font-bold text-[#10213B]">
                         {rep.report_number}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-slate-900">{rep.report_snapshot.patient.full_name}</div>
-                        <div className="text-[11px] font-mono text-slate-400">{order?.order_number}</div>
+                        <div className="font-semibold text-[#10213B]">
+                          {rep.report_snapshot.patient.full_name}
+                        </div>
+                        <div className="text-[11px] font-mono text-[#64748B]">
+                          {order?.order_number}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700">
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#F5F8FC] text-[#172B4D] border border-[#E3EAF3]">
                           v{rep.version_number}
                         </span>
                       </td>
@@ -550,34 +597,49 @@ export default function ReportsManagementPage() {
                               ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                               : rep.status === 'superseded'
                               ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                              : 'bg-blue-100 text-blue-800 border border-blue-200'
+                              : 'bg-blue-100 text-[#1565D8] border border-blue-200'
                           }`}
                         >
                           {rep.status}
                         </span>
                         {rep.amendment_reason && (
-                          <div className="text-[10px] text-amber-800 italic mt-0.5 max-w-xs truncate" title={rep.amendment_reason}>
+                          <div
+                            className="text-[10px] text-amber-800 italic mt-0.5 max-w-xs truncate"
+                            title={rep.amendment_reason}
+                          >
                             Amended: {rep.amendment_reason}
                           </div>
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-slate-800">{rep.report_snapshot.reviewer.full_name}</div>
-                        <div className="text-[10px] text-teal-700">{rep.report_snapshot.reviewer.credentials}</div>
+                        <div className="font-semibold text-[#10213B]">
+                          {rep.report_snapshot.reviewer.full_name}
+                        </div>
+                        <div className="text-[10px] text-[#1565D8]">
+                          {rep.report_snapshot.reviewer.credentials}
+                        </div>
                       </td>
-                      <td className="px-4 py-3 text-slate-500">
-                        {rep.released_at ? new Date(rep.released_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pending'}
+                      <td className="px-4 py-3 text-[#64748B]">
+                        {rep.released_at
+                          ? new Date(rep.released_at).toLocaleDateString('en-IN', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : 'Pending'}
                       </td>
-                      <td className="px-4 py-3 text-right space-x-2">
+                      <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                         {/* View / Print in Tab */}
                         <button
                           type="button"
                           onClick={() => handleViewPdf(rep)}
                           disabled={isGeneratingPdf === rep.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#172B4D] bg-[#F5F8FC] hover:bg-[#E3EAF3] rounded-lg border border-[#E3EAF3] transition-all disabled:opacity-50"
                           title="Open PDF in new tab to print"
                         >
-                          <Printer className="w-3.5 h-3.5 text-slate-600" />
+                          <Printer className="w-3.5 h-3.5 text-[#64748B]" />
                           <span>View / Print</span>
                         </button>
 
@@ -586,7 +648,7 @@ export default function ReportsManagementPage() {
                           type="button"
                           onClick={() => handleDownloadPdf(rep)}
                           disabled={isGeneratingPdf === rep.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition-all disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1565D8] bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all disabled:opacity-50"
                           title="Download signed A4 PDF report"
                         >
                           <Download className="w-3.5 h-3.5" />
@@ -619,64 +681,77 @@ export default function ReportsManagementPage() {
 
       {/* MODAL 1: Authorize Report */}
       {authModalOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 border border-slate-100">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#10213B]/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 border border-[#E3EAF3]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E3EAF3]">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-teal-50 text-teal-700 rounded-xl">
+                <div className="p-2 bg-blue-50 text-[#1565D8] rounded-xl border border-blue-100">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">
+                  <h2 className="text-base font-bold text-[#10213B]">
                     Clinical Authorization & Digital Release
                   </h2>
-                  <p className="text-xs text-slate-500">Order {authModalOrder.order_number}</p>
+                  <p className="text-xs text-[#64748B]">Order {authModalOrder.order_number}</p>
                 </div>
               </div>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              You are certifying that all clinical values for patient <strong>{authModalOrder.patient?.full_name}</strong> have been reviewed and validated under laboratory accreditation standards.
+            <p className="text-xs text-[#64748B] leading-relaxed">
+              You are certifying that all clinical values for patient{' '}
+              <strong>{authModalOrder.patient?.full_name}</strong> have been reviewed and validated
+              under laboratory accreditation standards.
             </p>
 
-            <div className="p-3.5 bg-teal-50/80 border border-teal-200 rounded-xl text-xs text-teal-950 space-y-1">
-              <div className="font-bold flex items-center gap-1.5">
-                <FileBadge className="w-3.5 h-3.5 text-teal-700" />
+            <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl text-xs text-[#10213B] space-y-1">
+              <div className="font-bold flex items-center gap-1.5 text-[#1565D8]">
+                <FileBadge className="w-3.5 h-3.5 text-[#1565D8]" />
                 <span>Verified Pathologist Credentials</span>
               </div>
-              <p>Authorizing Reviewer: <strong>{activeStaff.full_name}</strong></p>
-              <p>Title: {activeStaff.reviewer_scope?.credentials_title || 'Consultant Pathologist'}</p>
-              <p>Medical License: {activeStaff.reviewer_scope?.medical_license_number || 'TSMC-74892'}</p>
-              <p>Scope: {activeStaff.reviewer_scope?.verified_scopes.join(', ') || 'ALL'}</p>
+              <p>
+                Authorizing Reviewer: <strong>{activeStaff.full_name}</strong>
+              </p>
+              <p>
+                Title:{' '}
+                {activeStaff.reviewer_scope?.credentials_title || 'Consultant Pathologist'}
+              </p>
+              <p>
+                Medical License:{' '}
+                {activeStaff.reviewer_scope?.medical_license_number || 'TSMC-74892'}
+              </p>
+              <p>
+                Scope:{' '}
+                {activeStaff.reviewer_scope?.verified_scopes.join(', ') || 'ALL'}
+              </p>
             </div>
 
             <form onSubmit={handleConfirmAuthorize} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Authorization Comments & Interpretation Notes
+                <label className="block text-xs font-semibold text-[#10213B] mb-1">
+                  Authorization Comments &amp; Interpretation Notes
                 </label>
                 <textarea
                   rows={2}
                   value={authComments}
                   onChange={(e) => setAuthComments(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-[#1565D8]/20 focus:border-[#1565D8] outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E3EAF3]">
                 <button
                   type="button"
                   onClick={() => setAuthModalOrder(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                  className="px-4 py-2 text-xs font-semibold text-[#64748B] bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-[#1565D8] hover:bg-[#104fad] rounded-xl shadow-md transition-all flex items-center gap-1.5"
                 >
                   <ShieldCheck className="w-4 h-4" />
-                  <span>Sign & Release Official Report</span>
+                  <span>Sign &amp; Release Official Report</span>
                 </button>
               </div>
             </form>
@@ -686,7 +761,7 @@ export default function ReportsManagementPage() {
 
       {/* MODAL 2: Return for Correction */}
       {returnModalOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#10213B]/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-amber-100">
             <div className="flex items-center justify-between pb-3 border-b border-amber-100">
               <div className="flex items-center gap-2.5">
@@ -694,9 +769,7 @@ export default function ReportsManagementPage() {
                   <RotateCcw className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-amber-900">
-                    Return for Correction
-                  </h2>
+                  <h2 className="text-base font-bold text-amber-900">Return for Correction</h2>
                   <p className="text-xs text-amber-700">Order {returnModalOrder.order_number}</p>
                 </div>
               </div>
@@ -704,7 +777,7 @@ export default function ReportsManagementPage() {
 
             <form onSubmit={handleConfirmReturn} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-[#10213B] mb-1">
                   Mandatory Clinical Correction Reason *
                 </label>
                 <textarea
@@ -713,15 +786,15 @@ export default function ReportsManagementPage() {
                   placeholder="e.g. Platelet count appears clotted on smear; please re-run with vortex mixing or request new EDTA tube"
                   value={returnComments}
                   onChange={(e) => setReturnComments(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 text-xs border border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-amber-100">
                 <button
                   type="button"
                   onClick={() => setReturnModalOrder(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                  className="px-4 py-2 text-xs font-semibold text-[#64748B] bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
                 >
                   Cancel
                 </button>
@@ -740,7 +813,7 @@ export default function ReportsManagementPage() {
 
       {/* MODAL 3: Issue Corrected Report (Amendment) */}
       {amendModalReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#10213B]/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 border border-rose-100">
             <div className="flex items-center justify-between pb-3 border-b border-rose-100">
               <div className="flex items-center gap-2.5">
@@ -751,18 +824,22 @@ export default function ReportsManagementPage() {
                   <h2 className="text-base font-bold text-rose-900">
                     Issue Corrected Diagnostic Report
                   </h2>
-                  <p className="text-xs text-rose-700">Superseding {amendModalReport.report_number}</p>
+                  <p className="text-xs text-rose-700">
+                    Superseding {amendModalReport.report_number}
+                  </p>
                 </div>
               </div>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Issuing an amended report archives the original version as <strong>SUPERSEDED</strong> and creates a transparent audit trail detailing the clinical reason and physician communication.
+            <p className="text-xs text-[#64748B] leading-relaxed">
+              Issuing an amended report archives the original version as{' '}
+              <strong>SUPERSEDED</strong> and creates a transparent audit trail detailing the
+              clinical reason and physician communication.
             </p>
 
             <form onSubmit={handleConfirmAmendment} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-[#10213B] mb-1">
                   Clinical Justification for Amendment * (min 10 chars)
                 </label>
                 <textarea
@@ -771,12 +848,12 @@ export default function ReportsManagementPage() {
                   placeholder="e.g. Clinician requested repeat test due to sudden shift; secondary run confirmed..."
                   value={amendReason}
                   onChange={(e) => setAmendReason(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-rose-500 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-[#10213B] mb-1">
                   Documented Physician Communication Notes * (min 10 chars)
                 </label>
                 <textarea
@@ -785,15 +862,15 @@ export default function ReportsManagementPage() {
                   placeholder="e.g. Communicated corrected value directly to Dr. Ramesh at 14:30 via phone"
                   value={amendNotes}
                   onChange={(e) => setAmendNotes(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-rose-500 outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-rose-100">
                 <button
                   type="button"
                   onClick={() => setAmendModalReport(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                  className="px-4 py-2 text-xs font-semibold text-[#64748B] bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
                 >
                   Cancel
                 </button>
@@ -802,7 +879,7 @@ export default function ReportsManagementPage() {
                   className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-md transition-all flex items-center gap-1.5"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Supersede & Amend Report</span>
+                  <span>Supersede &amp; Amend Report</span>
                 </button>
               </div>
             </form>

@@ -209,17 +209,17 @@ export default function FinancePage() {
 
   if (!isAdmin) {
     return (
-      <div className="p-8 bg-white border border-slate-200 rounded-2xl text-center space-y-4 max-w-lg mx-auto mt-12 shadow-sm">
-        <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center mx-auto">
+      <div className="p-8 bg-white border border-[#E3EAF3] rounded-2xl text-center space-y-4 max-w-lg mx-auto mt-12 shadow-[0_1px_3px_rgba(16,33,59,0.04)]">
+        <div className="w-12 h-12 rounded-full bg-blue-50 text-[#1565D8] flex items-center justify-center mx-auto">
           <ShieldAlert className="w-6 h-6" />
         </div>
-        <h2 className="text-lg font-bold text-slate-900">Finance Access Restricted</h2>
-        <p className="text-xs text-slate-600 leading-relaxed">
+        <h2 className="text-lg font-bold text-[#10213B]">Finance Access Restricted</h2>
+        <p className="text-xs text-[#64748B] leading-relaxed">
           You are signed in as <strong>{activeStaff.full_name} ({activeStaff.roles.join(', ')})</strong>.
           Aggregate laboratory finance, refund authorization, expense recording, and CSV accounting exports are strictly reserved for the <strong>Admin</strong> role.
         </p>
-        <p className="text-xs text-slate-500">
-          Switch to <strong>Padma (Administrator)</strong> in the top-bar profile switcher to inspect and manage laboratory accounts.
+        <p className="text-xs text-[#64748B]">
+          Switch to <strong>Padma (Admin)</strong> in the top-bar profile switcher to inspect and manage laboratory accounts.
         </p>
       </div>
     );
@@ -230,7 +230,10 @@ export default function FinancePage() {
     const order = globalStore.orders.find((o) => o.id === inv.order_id);
     const patientName = order?.patient?.full_name.toLowerCase() || '';
     const invNum = inv.invoice_number.toLowerCase();
-    const matchesSearch = !searchQuery || patientName.includes(searchQuery.toLowerCase()) || invNum.includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      !searchQuery ||
+      patientName.includes(searchQuery.toLowerCase()) ||
+      invNum.includes(searchQuery.toLowerCase());
 
     if (!matchesSearch) return false;
     if (statusFilter === 'all') return true;
@@ -238,17 +241,19 @@ export default function FinancePage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3EAF3]">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Finance & Daily Reconciliation</h1>
+            <h1 className="text-2xl font-extrabold text-[#10213B] tracking-tight">
+              Finance &amp; Daily Reconciliation
+            </h1>
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
               Admin Workspace
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-[#64748B] mt-1">
             Collections, dues, refunds, lab reagent operational expenses, and permission-controlled CSV ledger exports.
           </p>
         </div>
@@ -256,14 +261,14 @@ export default function FinancePage() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setShowExpenseModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-sm transition-all"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#172B4D] bg-white hover:bg-[#F5F8FC] border border-[#E3EAF3] rounded-xl shadow-xs transition-all"
           >
-            <PlusCircle className="w-4 h-4 text-slate-500" />
+            <PlusCircle className="w-4 h-4 text-[#1565D8]" />
             <span>Record Lab Expense</span>
           </button>
           <button
             onClick={handleExportCsv}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-sm transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1565D8] hover:bg-[#104fad] rounded-xl shadow-sm transition-all"
           >
             <Download className="w-4 h-4" />
             <span>Export Protected CSV</span>
@@ -273,13 +278,13 @@ export default function FinancePage() {
 
       {/* Messages */}
       {errorMessage && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-center gap-3 shadow-sm">
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-center gap-3 shadow-xs">
           <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
           <div className="font-medium">{errorMessage}</div>
         </div>
       )}
       {successMessage && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-800 flex items-center gap-3 shadow-sm">
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-800 flex items-center gap-3 shadow-xs">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <div className="font-medium">{successMessage}</div>
         </div>
@@ -288,77 +293,87 @@ export default function FinancePage() {
       {/* Aggregate Financial KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Invoiced */}
-        <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm">
+        <div className="p-5 bg-white border border-[#E3EAF3] rounded-2xl shadow-[0_1px_3px_rgba(16,33,59,0.04)]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Invoiced</span>
-            <div className="p-1.5 bg-slate-100 text-slate-600 rounded-lg">
+            <span className="text-xs font-bold text-[#64748B] uppercase tracking-wider">
+              Total Invoiced
+            </span>
+            <div className="p-1.5 bg-[#F5F8FC] text-[#1565D8] rounded-lg">
               <Receipt className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-black text-slate-900 tracking-tight">
+          <div className="mt-3 text-2xl font-extrabold text-[#10213B] tracking-tight">
             ₹{totalInvoiced.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-slate-400 mt-1 block">Gross diagnostic fees billed</span>
+          <span className="text-[11px] text-[#64748B] mt-1 block">Gross diagnostic fees billed</span>
         </div>
 
         {/* Collections */}
-        <div className="p-5 bg-white border border-emerald-200/90 rounded-2xl shadow-sm">
+        <div className="p-5 bg-white border border-emerald-200 rounded-2xl shadow-[0_1px_3px_rgba(16,33,59,0.04)]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Collections (Cash/UPI)</span>
-            <div className="p-1.5 bg-emerald-100/80 text-emerald-700 rounded-lg">
+            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">
+              Collections (Cash/UPI)
+            </span>
+            <div className="p-1.5 bg-emerald-50 text-emerald-700 rounded-lg">
               <ArrowDownLeft className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-black text-emerald-800 tracking-tight">
+          <div className="mt-3 text-2xl font-extrabold text-emerald-800 tracking-tight">
             ₹{totalCollected.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-emerald-600 mt-1 block font-medium">
+          <span className="text-[11px] text-emerald-700 mt-1 block font-medium">
             Refunds: -₹{totalRefunded.toFixed(2)}
           </span>
         </div>
 
         {/* Outstanding Dues */}
-        <div className="p-5 bg-white border border-amber-200/90 rounded-2xl shadow-sm">
+        <div className="p-5 bg-white border border-amber-200 rounded-2xl shadow-[0_1px_3px_rgba(16,33,59,0.04)]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Outstanding Dues</span>
-            <div className="p-1.5 bg-amber-100/80 text-amber-700 rounded-lg">
+            <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">
+              Outstanding Dues
+            </span>
+            <div className="p-1.5 bg-amber-50 text-amber-700 rounded-lg">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-black text-amber-800 tracking-tight">
+          <div className="mt-3 text-2xl font-extrabold text-amber-900 tracking-tight">
             ₹{totalOutstanding.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-amber-600 mt-1 block font-medium">
+          <span className="text-[11px] text-amber-700 mt-1 block font-medium">
             Pending patient receivables
           </span>
         </div>
 
         {/* Net Operating Income */}
-        <div className="p-5 bg-white border border-indigo-200/90 rounded-2xl shadow-sm">
+        <div className="p-5 bg-white border border-blue-200 rounded-2xl shadow-[0_1px_3px_rgba(16,33,59,0.04)]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-indigo-700 uppercase tracking-wider">Net Cash Flow</span>
-            <div className="p-1.5 bg-indigo-100/80 text-indigo-700 rounded-lg">
+            <span className="text-xs font-bold text-[#1565D8] uppercase tracking-wider">
+              Net Cash Flow
+            </span>
+            <div className="p-1.5 bg-blue-50 text-[#1565D8] rounded-lg">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-black text-indigo-900 tracking-tight">
+          <div className="mt-3 text-2xl font-extrabold text-[#10213B] tracking-tight">
             ₹{netOperatingIncome.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <span className="text-[11px] text-indigo-600 mt-1 block font-medium">
+          <span className="text-[11px] text-[#1565D8] mt-1 block font-medium">
             Expenses: ₹{totalExpenses.toFixed(2)}
           </span>
         </div>
       </div>
 
       {/* Main Section: Invoice Reconciliation */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden space-y-4 p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+      <div className="bg-white border border-[#E3EAF3] rounded-2xl shadow-[0_1px_3px_rgba(16,33,59,0.04)] overflow-hidden space-y-4 p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E3EAF3]">
           <div>
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Receipt className="w-4 h-4 text-teal-600" />
-              <span>Billing Ledger & Reconciliation</span>
+            <h2 className="text-base font-bold text-[#10213B] flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-[#1565D8]" />
+              <span>Billing Ledger &amp; Reconciliation</span>
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">Real-time settlement, partial collections, and refund tracking</p>
+            <p className="text-xs text-[#64748B] mt-0.5">
+              Real-time settlement, partial collections, and refund tracking
+            </p>
           </div>
 
           {/* Search bar */}
@@ -369,7 +384,7 @@ export default function FinancePage() {
               placeholder="Search by patient or invoice #..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500"
+              className="w-full pl-9 pr-3 py-1.5 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-[#1565D8]/20 focus:border-[#1565D8] outline-none"
             />
           </div>
         </div>
@@ -382,8 +397,8 @@ export default function FinancePage() {
               onClick={() => setStatusFilter(filter)}
               className={`px-3 py-1 rounded-full font-semibold transition-all ${
                 statusFilter === filter
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-[#1565D8] text-white shadow-xs'
+                  : 'bg-[#F5F8FC] text-[#64748B] hover:bg-[#E3EAF3]'
               }`}
             >
               {filter === 'all' && `All Invoices (${globalStore.invoices.length})`}
@@ -397,8 +412,8 @@ export default function FinancePage() {
 
         {/* Invoices Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-600">
-            <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+          <table className="w-full text-left text-xs text-[#172B4D]">
+            <thead className="bg-[#F5F8FC] text-[#64748B] font-semibold border-b border-[#E3EAF3]">
               <tr>
                 <th className="px-4 py-3 font-semibold">Invoice #</th>
                 <th className="px-4 py-3 font-semibold">Patient Name</th>
@@ -411,22 +426,28 @@ export default function FinancePage() {
                 <th className="px-4 py-3 font-semibold text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#E3EAF3]">
               {filteredInvoices.map((inv) => {
                 const order = globalStore.orders.find((o) => o.id === inv.order_id);
                 const netPaid = inv.amount_paid - inv.amount_refunded;
                 return (
-                  <tr key={inv.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="px-4 py-3 font-mono font-bold text-slate-900">{inv.invoice_number}</td>
-                    <td className="px-4 py-3 font-semibold text-slate-900">
+                  <tr key={inv.id} className="hover:bg-[#F5F8FC]/80 transition-colors">
+                    <td className="px-4 py-3 font-mono font-bold text-[#10213B]">{inv.invoice_number}</td>
+                    <td className="px-4 py-3 font-semibold text-[#10213B]">
                       {order?.patient?.full_name || 'Walk-in'}
                     </td>
                     <td className="px-4 py-3 font-mono">₹{inv.subtotal.toFixed(2)}</td>
                     <td className="px-4 py-3 text-amber-700 font-mono">
-                      {inv.discount_amount > 0 ? `-₹${inv.discount_amount.toFixed(2)} (${inv.discount_percentage}%)` : '—'}
+                      {inv.discount_amount > 0
+                        ? `-₹${inv.discount_amount.toFixed(2)} (${inv.discount_percentage}%)`
+                        : '—'}
                     </td>
-                    <td className="px-4 py-3 font-bold text-slate-900 font-mono">₹{inv.total_amount.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-emerald-700 font-bold font-mono">₹{inv.amount_paid.toFixed(2)}</td>
+                    <td className="px-4 py-3 font-bold text-[#10213B] font-mono">
+                      ₹{inv.total_amount.toFixed(2)}
+                    </td>
+                    <td className="px-4 py-3 text-emerald-700 font-bold font-mono">
+                      ₹{inv.amount_paid.toFixed(2)}
+                    </td>
                     <td className="px-4 py-3 font-mono">
                       {inv.balance_due > 0 ? (
                         <span className="font-bold text-rose-700">₹{inv.balance_due.toFixed(2)}</span>
@@ -449,7 +470,7 @@ export default function FinancePage() {
                         {inv.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right space-x-2">
+                    <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                       {/* Settle Due Button */}
                       {inv.balance_due > 0 && (
                         <button
@@ -487,18 +508,20 @@ export default function FinancePage() {
       </div>
 
       {/* Operational Expenses Log */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden p-6 space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div className="bg-white border border-[#E3EAF3] rounded-2xl shadow-[0_1px_3px_rgba(16,33,59,0.04)] overflow-hidden p-6 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E3EAF3]">
           <div className="flex items-center gap-2">
-            <Building className="w-4 h-4 text-teal-600" />
-            <h2 className="text-base font-bold text-slate-900">Laboratory Operational Expenses</h2>
+            <Building className="w-4 h-4 text-[#1565D8]" />
+            <h2 className="text-base font-bold text-[#10213B]">Laboratory Operational Expenses</h2>
           </div>
-          <span className="text-xs text-slate-500 font-medium">Reagents, test tubes, consumables & analyzer maintenance</span>
+          <span className="text-xs text-[#64748B] font-medium">
+            Reagents, test tubes, consumables &amp; analyzer maintenance
+          </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-600">
-            <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+          <table className="w-full text-left text-xs text-[#172B4D]">
+            <thead className="bg-[#F5F8FC] text-[#64748B] font-semibold border-b border-[#E3EAF3]">
               <tr>
                 <th className="px-4 py-3 font-semibold">Date</th>
                 <th className="px-4 py-3 font-semibold">Expense Category</th>
@@ -508,19 +531,21 @@ export default function FinancePage() {
                 <th className="px-4 py-3 font-semibold text-right">Amount</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#E3EAF3]">
               {globalStore.expenses.map((exp) => (
-                <tr key={exp.id} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="px-4 py-3 text-slate-500 font-mono">{exp.expense_date}</td>
+                <tr key={exp.id} className="hover:bg-[#F5F8FC]/80 transition-colors">
+                  <td className="px-4 py-3 text-[#64748B] font-mono">{exp.expense_date}</td>
                   <td className="px-4 py-3">
-                    <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 capitalize">
+                    <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#F5F8FC] text-[#172B4D] border border-[#E3EAF3] capitalize">
                       {exp.category}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-bold text-slate-900">{exp.vendor}</td>
-                  <td className="px-4 py-3 text-slate-700">{exp.description}</td>
-                  <td className="px-4 py-3 font-mono text-[11px] text-slate-400">{exp.receipt_reference || '—'}</td>
-                  <td className="px-4 py-3 text-right font-black text-slate-900 font-mono">
+                  <td className="px-4 py-3 font-bold text-[#10213B]">{exp.vendor}</td>
+                  <td className="px-4 py-3 text-[#172B4D]">{exp.description}</td>
+                  <td className="px-4 py-3 font-mono text-[11px] text-[#64748B]">
+                    {exp.receipt_reference || '—'}
+                  </td>
+                  <td className="px-4 py-3 text-right font-black text-[#10213B] font-mono">
                     ₹{exp.amount.toFixed(2)}
                   </td>
                 </tr>
@@ -532,21 +557,24 @@ export default function FinancePage() {
 
       {/* MODAL 1: Quick Pay Settlement */}
       {payInvoiceId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-100">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#10213B]/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-[#E3EAF3]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E3EAF3]">
+              <h2 className="text-base font-bold text-[#10213B] flex items-center gap-2">
                 <IndianRupee className="w-4 h-4 text-emerald-600" />
                 <span>Collect Balance Due</span>
               </h2>
-              <button onClick={() => setPayInvoiceId(null)} className="text-slate-400 hover:text-slate-600">
+              <button
+                onClick={() => setPayInvoiceId(null)}
+                className="text-slate-400 hover:text-[#10213B]"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleQuickPay} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-[#10213B] mb-1">
                   Amount to Collect (₹) *
                 </label>
                 <input
@@ -556,12 +584,12 @@ export default function FinancePage() {
                   required
                   value={payAmount}
                   onChange={(e) => setPayAmount(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-sm font-bold border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-mono"
+                  className="w-full px-3 py-2 text-sm font-bold border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-emerald-500 font-mono outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-[#10213B] mb-2">
                   Payment Method *
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -570,11 +598,11 @@ export default function FinancePage() {
                     onClick={() => setPayMethod('upi')}
                     className={`p-2.5 rounded-xl border text-center transition-all ${
                       payMethod === 'upi'
-                        ? 'border-teal-600 bg-teal-50 text-teal-800 font-bold'
-                        : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                        ? 'border-[#1565D8] bg-blue-50 text-[#1565D8] font-bold'
+                        : 'border-[#E3EAF3] text-[#172B4D] hover:bg-[#F5F8FC]'
                     }`}
                   >
-                    <QrCode className="w-4 h-4 mx-auto mb-1 text-teal-600" />
+                    <QrCode className="w-4 h-4 mx-auto mb-1 text-[#1565D8]" />
                     <span className="text-xs">UPI / QR</span>
                   </button>
 
@@ -584,7 +612,7 @@ export default function FinancePage() {
                     className={`p-2.5 rounded-xl border text-center transition-all ${
                       payMethod === 'cash'
                         ? 'border-emerald-600 bg-emerald-50 text-emerald-800 font-bold'
-                        : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                        : 'border-[#E3EAF3] text-[#172B4D] hover:bg-[#F5F8FC]'
                     }`}
                   >
                     <Banknote className="w-4 h-4 mx-auto mb-1 text-emerald-600" />
@@ -597,7 +625,7 @@ export default function FinancePage() {
                     className={`p-2.5 rounded-xl border text-center transition-all ${
                       payMethod === 'card'
                         ? 'border-blue-600 bg-blue-50 text-blue-800 font-bold'
-                        : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                        : 'border-[#E3EAF3] text-[#172B4D] hover:bg-[#F5F8FC]'
                     }`}
                   >
                     <CreditCard className="w-4 h-4 mx-auto mb-1 text-blue-600" />
@@ -606,11 +634,11 @@ export default function FinancePage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
+              <div className="flex justify-end gap-2.5 pt-2 border-t border-[#E3EAF3]">
                 <button
                   type="button"
                   onClick={() => setPayInvoiceId(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                  className="px-4 py-2 text-xs font-semibold text-[#64748B] bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
                 >
                   Cancel
                 </button>
@@ -629,22 +657,25 @@ export default function FinancePage() {
 
       {/* MODAL 2: Issue Controlled Refund */}
       {showRefundModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#10213B]/60 backdrop-blur-xs animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-rose-100">
             <div className="flex items-center justify-between pb-3 border-b border-rose-100">
               <h2 className="text-base font-bold text-rose-800">Issue Controlled Refund</h2>
-              <button onClick={() => setShowRefundModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button
+                onClick={() => setShowRefundModal(false)}
+                className="text-slate-400 hover:text-[#10213B]"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-[#64748B] leading-relaxed">
               Patient refunds are recorded on the billing ledger, preserve initial payment history, and auto-adjust net balances.
             </p>
 
             <form onSubmit={handleRecordRefund} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-[#10213B] mb-1">
                   Refund Amount (₹) *
                 </label>
                 <input
@@ -654,12 +685,12 @@ export default function FinancePage() {
                   required
                   value={refundAmount}
                   onChange={(e) => setRefundAmount(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-xs font-bold font-mono border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 text-xs font-bold font-mono border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-rose-500 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-[#10213B] mb-1">
                   Mandatory Justification Reason *
                 </label>
                 <textarea
@@ -668,15 +699,15 @@ export default function FinancePage() {
                   placeholder="e.g. Duplicate payment adjustment / test cancelled prior to blood collection"
                   value={refundReason}
                   onChange={(e) => setRefundReason(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-rose-500 outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
+              <div className="flex justify-end gap-2.5 pt-2 border-t border-rose-100">
                 <button
                   type="button"
                   onClick={() => setShowRefundModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                  className="px-4 py-2 text-xs font-semibold text-[#64748B] bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
                 >
                   Cancel
                 </button>
@@ -694,33 +725,40 @@ export default function FinancePage() {
 
       {/* MODAL 3: Record Expense */}
       {showExpenseModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-100">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h2 className="text-base font-bold text-slate-900">Record Lab Expense</h2>
-              <button onClick={() => setShowExpenseModal(false)} className="text-slate-400 hover:text-slate-600">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#10213B]/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-[#E3EAF3]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E3EAF3]">
+              <h2 className="text-base font-bold text-[#10213B]">Record Lab Expense</h2>
+              <button
+                onClick={() => setShowExpenseModal(false)}
+                className="text-slate-400 hover:text-[#10213B]"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleRecordExpense} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Expense Category *</label>
+                <label className="block text-xs font-semibold text-[#10213B] mb-1">
+                  Expense Category *
+                </label>
                 <select
                   value={expCategory}
                   onChange={(e) => setExpCategory(e.target.value as any)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white font-medium"
+                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl bg-white font-medium"
                 >
-                  <option value="reagents">Reagents (Analyzer reagents & controls)</option>
+                  <option value="reagents">Reagents (Analyzer reagents &amp; controls)</option>
                   <option value="consumables">Consumables (Vacutainers, needles, gloves)</option>
                   <option value="utilities">Utilities (Electricity, Internet)</option>
-                  <option value="maintenance">Analyzer Maintenance & Servicing</option>
+                  <option value="maintenance">Analyzer Maintenance &amp; Servicing</option>
                   <option value="other">Other Operational Expenses</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Amount (₹) *</label>
+                <label className="block text-xs font-semibold text-[#10213B] mb-1">
+                  Amount (₹) *
+                </label>
                 <input
                   type="number"
                   step="0.01"
@@ -729,56 +767,62 @@ export default function FinancePage() {
                   placeholder="0.00"
                   value={expAmount || ''}
                   onChange={(e) => setExpAmount(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-xs font-bold font-mono border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 text-xs font-bold font-mono border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-[#1565D8]/20 focus:border-[#1565D8] outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Vendor / Payee *</label>
+                <label className="block text-xs font-semibold text-[#10213B] mb-1">
+                  Vendor / Payee *
+                </label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Erba Diagnostics Hyderabad / Sri Sai Surgicals"
                   value={expVendor}
                   onChange={(e) => setExpVendor(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-[#1565D8]/20 focus:border-[#1565D8] outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Description *</label>
+                <label className="block text-xs font-semibold text-[#10213B] mb-1">
+                  Description *
+                </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. CBC Diluent pack & Lyse reagent"
+                  placeholder="e.g. CBC Diluent pack &amp; Lyse reagent"
                   value={expDesc}
                   onChange={(e) => setExpDesc(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-[#1565D8]/20 focus:border-[#1565D8] outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Invoice / Receipt Bill #</label>
+                <label className="block text-xs font-semibold text-[#10213B] mb-1">
+                  Invoice / Receipt Bill #
+                </label>
                 <input
                   type="text"
                   placeholder="e.g. BILL-44910"
                   value={expRef}
                   onChange={(e) => setExpRef(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 text-xs border border-[#E3EAF3] rounded-xl focus:ring-2 focus:ring-[#1565D8]/20 focus:border-[#1565D8] outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
+              <div className="flex justify-end gap-2.5 pt-2 border-t border-[#E3EAF3]">
                 <button
                   type="button"
                   onClick={() => setShowExpenseModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                  className="px-4 py-2 text-xs font-semibold text-[#64748B] bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-md transition-all"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-[#1565D8] hover:bg-[#104fad] rounded-xl shadow-md transition-all"
                 >
                   Save Expense
                 </button>
