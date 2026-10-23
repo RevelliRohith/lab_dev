@@ -269,4 +269,61 @@ describe('Diagnostic Laboratory Safety & Invariants', () => {
       expect(pdfBytes.length).toBeGreaterThan(1000); // Standard A4 PDF size
     });
   });
+
+  describe('7. Result Entry Workflow & Authorization Safeguards', () => {
+    it('saves parameter results and requires independent clinical review before release', async () => {
+      // 1. Staff creates a fresh order for Glucose
+      globalStore.setActiveStaffId('33333333-3333-3333-3333-333333333333'); // Staff David
+      const order = globalStore.createOrder({
+        patientId: globalStore.patients[0].id,
+        testIds: [globalStore.tests[1].id], // Glucose
+      });
+      globalStore.updateSpecimenStatus(order.specimens[0].id, 'collect_and_receive');
+
+      // 2. Staff enters test result (Save Results)
+      const paramId = order.results[0].order_test_parameter_id;
+      globalStore.updateResult({
+        orderId: order.id,
+        orderTestParameterId: paramId,
+        disposition: 'performed',
+        numericValue: 88.5,
+      });
+
+      // Assert result is saved in store
+      expect(order.results[0].numeric_value).toBe(88.5);
+      expect(order.results[0].disposition).toBe('performed');
+      expect(order.results[0].flag).toBe('normal');
+
+      // 3. Submit for review (QA attestation)
+      const sub = globalStore.submitForReview(
+        order.id,
+        'Daily analyzer calibration and controls verified in acceptable limits.'
+      );
+      expect(sub.status).toBe('pending');
+
+      // Safeguard: Order must NOT have a report released yet
+      expect(order.report_versions.length).toBe(0);
+
+      // 4. Authorized reviewer (Dr. Rishika) clinically authorizes and releases report
+      globalStore.setActiveStaffId('44444444-4444-4444-4444-444444444444');
+      const newReport = globalStore.authorizeReport(
+        order.id,
+        sub.id,
+        'Clinically verified and authorized for diagnostic release.'
+      );
+      expect(newReport.status).toBe('authorized');
+      expect(newReport.report_snapshot.reviewer.full_name).toContain('Dr. Rishika');
+
+      // Release report
+      const released = globalStore.releaseReport(newReport.id, `reports/${newReport.report_number}.pdf`);
+      expect(released.status).toBe('released');
+      expect(order.status).toBe('completed');
+      expect(order.report_versions.length).toBe(1);
+
+      // 5. Verify PDF generation for the finalized authorized report
+      const pdfBytes = await generateLaboratoryReportPdf(released.report_snapshot);
+      expect(pdfBytes).toBeInstanceOf(Uint8Array);
+      expect(pdfBytes.length).toBeGreaterThan(1000);
+    });
+  });
 });
