@@ -3,26 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --background: #eaf2ff;
-  --foreground: #12234a;
-  --primary-blue: #2563eb;
-  --electric-blue: #3b82f6;
-  --soft-cyan: #7dd3fc;
-  --lavender: #a78bfa;
-  --mint-green: #6ee7b7;
-  --glass-surface: rgba(255, 255, 255, 0.52);
-  --glass-border: rgba(255, 255, 255, 0.72);
+  --background: #EEF4FF;
+  --foreground: #14213D;
+  --primary-blue: #2563EB;
+  --electric-blue: #3B82F6;
+  --soft-cyan: #7DD3FC;
+  --lavender: #A78BFA;
+  --mint-green: #6EE7B7;
+  --glass-surface: rgba(255, 255, 255, 0.68);
+  --glass-border: rgba(255, 255, 255, 0.75);
 }
 
 body {
-  color: #12234a;
-  background-color: #eaf2ff;
+  color: #14213D;
+  background-color: #EEF4FF;
   background-image: 
-    radial-gradient(at 0% 0%, rgba(167, 139, 250, 0.15) 0px, transparent 50%),
+    radial-gradient(at 0% 0%, rgba(167, 139, 250, 0.16) 0px, transparent 50%),
     radial-gradient(at 100% 0%, rgba(125, 211, 252, 0.22) 0px, transparent 50%),
-    radial-gradient(at 50% 50%, rgba(255, 255, 255, 0.6) 0px, transparent 100%),
-    radial-gradient(at 0% 100%, rgba(110, 231, 183, 0.12) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.10) 0px, transparent 50%);
+    radial-gradient(at 50% 50%, rgba(255, 255, 255, 0.65) 0px, transparent 100%),
+    radial-gradient(at 0% 100%, rgba(110, 231, 183, 0.14) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.12) 0px, transparent 50%);
   background-attachment: fixed;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Inter", sans-serif;
   min-height: 100vh;

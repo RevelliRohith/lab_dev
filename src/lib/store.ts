@@ -17,6 +17,12 @@ import {
   UserRole,
   CriticalNotification,
   ReportSnapshot,
+  LabCategory,
+  SpecimenType,
+  LabComponent,
+  TestComponentMapping,
+  ReportTemplate,
+  AuthorizedSignatory,
 } from './types';
 
 // Initial synthetic lab profile
@@ -36,6 +42,147 @@ const initialLab: LabProfile = {
   max_staff_discount_percentage: 15.0,
   critical_alert_phone: '9848228971',
 };
+
+// Initial Categories
+const initialCategories: LabCategory[] = [
+  { id: 'cat-001', code: 'HEM', name: 'Hematology', department: 'Hematology', display_order: 1, is_active: true },
+  { id: 'cat-002', code: 'BIO', name: 'Biochemistry', department: 'Biochemistry', display_order: 2, is_active: true },
+  { id: 'cat-003', code: 'SER', name: 'Serology', department: 'Serology', display_order: 3, is_active: true },
+  { id: 'cat-004', code: 'PATH', name: 'Clinical Pathology', department: 'Pathology', display_order: 4, is_active: true },
+  { id: 'cat-005', code: 'MICRO', name: 'Microbiology', department: 'Microbiology', display_order: 5, is_active: true },
+  { id: 'cat-006', code: 'IMM', name: 'Immunology', department: 'Immunology', display_order: 6, is_active: true },
+];
+
+// Initial Specimen Types
+const initialSpecimenTypes: SpecimenType[] = [
+  { id: 'spec-001', code: 'EDTA', name: 'EDTA Blood', container: 'Lavender Top (K2-EDTA)', color_code: '#8B5CF6', is_active: true },
+  { id: 'spec-002', code: 'SERUM', name: 'Serum', container: 'Gold SST (Gel Separator)', color_code: '#F59E0B', is_active: true },
+  { id: 'spec-003', code: 'PLASMA', name: 'Plasma (Fluoride)', container: 'Gray Top (Fluoride Oxalate)', color_code: '#94A3B8', is_active: true },
+  { id: 'spec-004', code: 'URINE', name: 'Urine', container: 'Sterile Urine Container', color_code: '#10B981', is_active: true },
+  { id: 'spec-005', code: 'STOOL', name: 'Stool', container: 'Wide Mouth Stool Container', color_code: '#D97706', is_active: true },
+  { id: 'spec-006', code: 'SWAB', name: 'Swab', container: 'Sterile Transport Swab', color_code: '#06B6D4', is_active: true },
+];
+
+// Initial Reusable Test Components
+const initialComponents: LabComponent[] = [
+  { id: 'comp-001', code: 'HGB', name: 'Hemoglobin', display_name: 'Hemoglobin (Hb)', unit: 'g/dL', value_type: 'numeric', control_type: 'number_input', method: 'Cyanmethemoglobin / Photometry', gen_range: '13.0 - 17.0', male_range: '13.5 - 17.5', female_range: '12.0 - 15.5', child_range: '11.0 - 14.0', display_sequence: 10, is_active: true },
+  { id: 'comp-002', code: 'WBC', name: 'White Blood Cell Count', display_name: 'Total Leucocyte Count (TLC)', unit: '10^3/uL', value_type: 'numeric', control_type: 'number_input', method: 'Electrical Impedance', gen_range: '4.5 - 11.0', male_range: '4.5 - 11.0', female_range: '4.5 - 11.0', child_range: '5.0 - 15.0', display_sequence: 20, is_active: true },
+  { id: 'comp-003', code: 'RBC', name: 'Red Blood Cell Count', display_name: 'Total RBC Count', unit: '10^6/uL', value_type: 'numeric', control_type: 'number_input', method: 'Electrical Impedance', gen_range: '4.5 - 5.9', male_range: '4.5 - 5.9', female_range: '4.0 - 5.2', child_range: '4.0 - 5.2', display_sequence: 30, is_active: true },
+  { id: 'comp-004', code: 'PLT', name: 'Platelet Count', display_name: 'Platelet Count', unit: '10^3/uL', value_type: 'numeric', control_type: 'number_input', method: 'Electrical Impedance', gen_range: '150 - 450', male_range: '150 - 450', female_range: '150 - 450', child_range: '150 - 450', display_sequence: 40, is_active: true },
+  { id: 'comp-005', code: 'HCT', name: 'Hematocrit', display_name: 'PCV / Hematocrit', unit: '%', value_type: 'numeric', control_type: 'number_input', method: 'Calculated / Centrifugation', gen_range: '40 - 50', male_range: '41 - 50', female_range: '36 - 46', child_range: '35 - 45', display_sequence: 50, is_active: true },
+  { id: 'comp-006', code: 'GLUF', name: 'Fasting Blood Sugar', display_name: 'Fasting Plasma Glucose (FBS)', unit: 'mg/dL', value_type: 'numeric', control_type: 'number_input', method: 'GOD-POD', gen_range: '70 - 99', male_range: '70 - 99', female_range: '70 - 99', child_range: '70 - 100', display_sequence: 60, is_active: true },
+  { id: 'comp-007', code: 'PPBS', name: 'Post Prandial Blood Sugar', display_name: '2 hr PP Blood Sugar', unit: 'mg/dL', value_type: 'numeric', control_type: 'number_input', method: 'GOD-POD', gen_range: '70 - 140', male_range: '70 - 140', female_range: '70 - 140', child_range: '70 - 140', display_sequence: 70, is_active: true },
+  { id: 'comp-008', code: 'CHOL', name: 'Total Cholesterol', display_name: 'Total Cholesterol', unit: 'mg/dL', value_type: 'numeric', control_type: 'number_input', method: 'CHOD-PAP', gen_range: '125 - 200', male_range: '125 - 200', female_range: '125 - 200', child_range: '120 - 170', display_sequence: 80, is_active: true },
+  { id: 'comp-009', code: 'TRIG', name: 'Triglycerides', display_name: 'Serum Triglycerides', unit: 'mg/dL', value_type: 'numeric', control_type: 'number_input', method: 'GPO-PAP', gen_range: '< 150', male_range: '< 150', female_range: '< 150', child_range: '< 100', display_sequence: 90, is_active: true },
+  { id: 'comp-010', code: 'HDL', name: 'HDL Cholesterol', display_name: 'HDL (Good Cholesterol)', unit: 'mg/dL', value_type: 'numeric', control_type: 'number_input', method: 'Direct Enzymatic', gen_range: '40 - 60', male_range: '40 - 50', female_range: '50 - 60', child_range: '35 - 55', display_sequence: 100, is_active: true },
+  { id: 'comp-011', code: 'BIL-T', name: 'Total Bilirubin', display_name: 'Bilirubin Total', unit: 'mg/dL', value_type: 'numeric', control_type: 'number_input', method: 'Diazo / Jendrassik-Grof', gen_range: '0.2 - 1.2', male_range: '0.2 - 1.2', female_range: '0.2 - 1.2', child_range: '0.2 - 1.0', display_sequence: 110, is_active: true },
+  { id: 'comp-012', code: 'BIL-D', name: 'Direct Bilirubin', display_name: 'Bilirubin Direct', unit: 'mg/dL', value_type: 'numeric', control_type: 'number_input', method: 'Diazo', gen_range: '0.0 - 0.4', male_range: '0.0 - 0.4', female_range: '0.0 - 0.4', child_range: '0.0 - 0.3', display_sequence: 120, is_active: true },
+  { id: 'comp-013', code: 'ALP', name: 'Alkaline Phosphatase', display_name: 'ALKALINE PHOSPHATASE (ALP)', unit: 'IU/L', value_type: 'numeric', control_type: 'number_input', method: 'p-NPP Kinetic', gen_range: '44 - 147', male_range: '44 - 147', female_range: '44 - 147', child_range: '100 - 350', display_sequence: 130, is_active: true },
+  { id: 'comp-014', code: 'ABO', name: 'Blood Group & Rh', display_name: 'Blood Grouping & Rh Typing', unit: '', value_type: 'dropdown', control_type: 'dropdown', method: 'Slide / Tube Agglutination', value_lookup: 'A Positive, B Positive, O Positive, AB Positive, A Negative, B Negative, O Negative, AB Negative', range_description: 'Reported phenotype', display_sequence: 140, is_active: true },
+  { id: 'comp-015', code: 'DENGUE-NS1', name: 'Dengue NS1 Antigen', display_name: 'Dengue NS1 Rapid Antigen', unit: '', value_type: 'positive_negative', control_type: 'radio', method: 'Immunochromatography', value_lookup: 'NEGATIVE, POSITIVE', gen_range: 'NEGATIVE', range_description: 'Negative for acute dengue infection', display_sequence: 150, is_active: true },
+  { id: 'comp-016', code: 'WIDAL', name: 'Widal Agglutination', display_name: 'Widal Slide / Tube Agglutination', unit: '', value_type: 'text', control_type: 'text_input', method: 'Agglutination', gen_range: 'Titre < 1:80', range_description: 'O: <1:80, H: <1:80 considered non-significant', display_sequence: 160, is_active: true },
+];
+
+// Initial Report Templates
+const initialReportTemplates: ReportTemplate[] = [
+  {
+    id: 'tmpl-001',
+    name: 'Default Laboratory Template',
+    short_name: 'Default',
+    template_type: 'normal',
+    description: 'Standard diagnostic multi-column report with reference intervals',
+    column_settings: { name: true, result: true, range: true, method: true, unit: true, remarks: true },
+    header_text: 'Rishi Laboratory — Accurate & Timely Diagnostic Services',
+    footer_text: 'Medical Interpretation: Clinical correlation advised. Not for medico-legal use.',
+    is_default: true,
+    display_sequence: 1,
+    is_active: true,
+  },
+  {
+    id: 'tmpl-002',
+    name: 'Hematology Report Template',
+    short_name: 'Hematology',
+    template_type: 'normal',
+    description: 'Detailed hematology template with instrument methodology & differential counts',
+    column_settings: { name: true, result: true, range: true, method: true, unit: true, remarks: true },
+    header_text: 'Rishi Laboratory — Department of Hematology & Hemopathology',
+    footer_text: 'CBC performed on 5-Part Automated Hematology Analyzer. Abnormal flags visually confirmed.',
+    is_default: false,
+    display_sequence: 2,
+    is_active: true,
+  },
+  {
+    id: 'tmpl-003',
+    name: 'Biochemistry Report Template',
+    short_name: 'Biochemistry',
+    template_type: 'normal',
+    description: 'Clinical biochemistry & metabolic panels with IFCC standardized reference intervals',
+    column_settings: { name: true, result: true, range: true, method: true, unit: true, remarks: true },
+    header_text: 'Rishi Laboratory — Clinical Biochemistry & Immunoassay',
+    footer_text: 'Enzymatic and photometric assays performed with fully automated calibrators.',
+    is_default: false,
+    display_sequence: 3,
+    is_active: true,
+  },
+  {
+    id: 'tmpl-004',
+    name: 'Complete Blood Count (CBC) Template',
+    short_name: 'CBC-TEMPLATE',
+    template_type: 'normal',
+    description: 'Full automated CBC with red cell indices and peripheral smear review',
+    column_settings: { name: true, result: true, range: true, method: true, unit: true, remarks: true },
+    header_text: 'Rishi Laboratory — Complete Hemogram',
+    footer_text: 'Kindly correlate with clinical findings and history.',
+    is_default: false,
+    display_sequence: 4,
+    is_active: true,
+  },
+  {
+    id: 'tmpl-005',
+    name: 'Clinical Pathology & Urine Examination',
+    short_name: 'Urine Examination',
+    template_type: 'normal',
+    description: 'Complete physical, chemical, and microscopic urine analysis report',
+    column_settings: { name: true, result: true, range: true, method: false, unit: true, remarks: true },
+    header_text: 'Rishi Laboratory — Clinical Pathology',
+    footer_text: 'Microscopic examination performed on centrifuged urine deposit at 400x.',
+    is_default: false,
+    display_sequence: 5,
+    is_active: true,
+  },
+];
+
+// Initial Authorized Signatories
+const initialSignatories: AuthorizedSignatory[] = [
+  {
+    id: 'sig-001',
+    full_name: 'Dr. Rishika',
+    designation: 'Consultant Pathologist',
+    qualifications: 'MBBS, MD (Pathology)',
+    registration_number: 'TSMC-74892',
+    registration_authority: 'Telangana State Medical Council (TSMC)',
+    signature_image_url: '/images/signature-dr-rishika.png',
+    authorized_categories: ['Hematology', 'Biochemistry', 'Serology', 'Clinical Pathology', 'Microbiology', 'Immunology'],
+    effective_date: '2024-01-01',
+    is_active: true,
+    is_default_normal: true,
+    is_default_histo_cyto: true,
+  },
+  {
+    id: 'sig-002',
+    full_name: 'Vakiti Padma Reddy',
+    designation: 'Clinical Laboratory Director',
+    qualifications: 'M.Sc (Medical Biochemistry)',
+    registration_number: 'RL-TS-9848228',
+    registration_authority: 'Directorate of Public Health, Telangana',
+    signature_image_url: '/images/signature-director-padma.png',
+    authorized_categories: ['Biochemistry', 'Hematology', 'Clinical Pathology'],
+    effective_date: '2023-01-01',
+    is_active: true,
+    is_default_normal: false,
+    is_default_histo_cyto: false,
+  },
+];
 
 // Staff profiles
 const initialStaff: StaffProfile[] = [
@@ -230,6 +377,11 @@ class DiagnosticLabStore {
   activeStaffId: string = initialStaff[1].id; // Default: David Chen (Lab Staff)
   patients: Patient[] = [...initialPatients];
   tests: TestDefinition[] = [...initialTests];
+  categories: LabCategory[] = [...initialCategories];
+  specimenTypes: SpecimenType[] = [...initialSpecimenTypes];
+  components: LabComponent[] = [...initialComponents];
+  reportTemplates: ReportTemplate[] = [...initialReportTemplates];
+  signatories: AuthorizedSignatory[] = [...initialSignatories];
   orders: Order[] = [];
   invoices: Invoice[] = [];
   expenses: Expense[] = [...initialExpenses];
@@ -245,6 +397,14 @@ class DiagnosticLabStore {
 
   constructor() {
     this.seedInitialOrders();
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('rishi_active_staff_id');
+        if (saved && this.staff.some((s) => s.id === saved)) {
+          this.activeStaffId = saved;
+        }
+      } catch {}
+    }
   }
 
   // Active User / Role context
@@ -258,6 +418,11 @@ class DiagnosticLabStore {
     if (!target) throw new Error('Staff not found');
     if (target.status === 'disabled') throw new Error('Disabled staff cannot be activated');
     this.activeStaffId = id;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('rishi_active_staff_id', id);
+      } catch {}
+    }
     this.recordAudit('staff_session_switched', 'staff_profiles', id, { name: target.full_name });
   }
 
@@ -288,6 +453,170 @@ class DiagnosticLabStore {
       metadata,
       timestamp: customTimestamp || new Date().toISOString(),
     });
+  }
+
+  // Category management
+  addCategory(data: Omit<LabCategory, 'id'>) {
+    const newCat: LabCategory = {
+      id: crypto.randomUUID(),
+      ...data,
+    };
+    this.categories.push(newCat);
+    this.recordAudit('category_created', 'lab_categories', newCat.id, { name: newCat.name });
+    return newCat;
+  }
+
+  updateCategory(id: string, updates: Partial<LabCategory>) {
+    const cat = this.categories.find((c) => c.id === id);
+    if (!cat) throw new Error('Category not found');
+    Object.assign(cat, updates);
+    this.recordAudit('category_updated', 'lab_categories', id, { name: cat.name });
+    return cat;
+  }
+
+  // Specimen management
+  addSpecimenType(data: Omit<SpecimenType, 'id'>) {
+    const newSpec: SpecimenType = {
+      id: crypto.randomUUID(),
+      ...data,
+    };
+    this.specimenTypes.push(newSpec);
+    this.recordAudit('specimen_type_created', 'specimen_types', newSpec.id, { name: newSpec.name });
+    return newSpec;
+  }
+
+  updateSpecimenType(id: string, updates: Partial<SpecimenType>) {
+    const spec = this.specimenTypes.find((s) => s.id === id);
+    if (!spec) throw new Error('Specimen type not found');
+    Object.assign(spec, updates);
+    this.recordAudit('specimen_type_updated', 'specimen_types', id, { name: spec.name });
+    return spec;
+  }
+
+  // Component management
+  addComponent(data: Omit<LabComponent, 'id'>) {
+    const newComp: LabComponent = {
+      id: crypto.randomUUID(),
+      ...data,
+    };
+    this.components.push(newComp);
+    this.recordAudit('component_created', 'lab_components', newComp.id, { name: newComp.name });
+    return newComp;
+  }
+
+  updateComponent(id: string, updates: Partial<LabComponent>) {
+    const comp = this.components.find((c) => c.id === id);
+    if (!comp) throw new Error('Component not found');
+    Object.assign(comp, updates);
+    this.recordAudit('component_updated', 'lab_components', id, { name: comp.name });
+    return comp;
+  }
+
+  toggleComponentStatus(id: string) {
+    const comp = this.components.find((c) => c.id === id);
+    if (!comp) throw new Error('Component not found');
+    comp.is_active = !comp.is_active;
+    this.recordAudit('component_status_toggled', 'lab_components', id, { is_active: comp.is_active });
+    return comp;
+  }
+
+  // Report Template management
+  addReportTemplate(data: Omit<ReportTemplate, 'id'>) {
+    const newTmpl: ReportTemplate = {
+      id: crypto.randomUUID(),
+      ...data,
+    };
+    if (newTmpl.is_default) {
+      this.reportTemplates.forEach((t) => (t.is_default = false));
+    }
+    this.reportTemplates.push(newTmpl);
+    this.recordAudit('report_template_created', 'report_templates', newTmpl.id, { name: newTmpl.name });
+    return newTmpl;
+  }
+
+  updateReportTemplate(id: string, updates: Partial<ReportTemplate>) {
+    const tmpl = this.reportTemplates.find((t) => t.id === id);
+    if (!tmpl) throw new Error('Report template not found');
+    if (updates.is_default) {
+      this.reportTemplates.forEach((t) => (t.is_default = false));
+    }
+    Object.assign(tmpl, updates);
+    this.recordAudit('report_template_updated', 'report_templates', id, { name: tmpl.name });
+    return tmpl;
+  }
+
+  toggleReportTemplateStatus(id: string) {
+    const tmpl = this.reportTemplates.find((t) => t.id === id);
+    if (!tmpl) throw new Error('Report template not found');
+    tmpl.is_active = !tmpl.is_active;
+    this.recordAudit('report_template_status_toggled', 'report_templates', id, { is_active: tmpl.is_active });
+    return tmpl;
+  }
+
+  // Signatory management
+  addSignatory(data: Omit<AuthorizedSignatory, 'id'>) {
+    const newSig: AuthorizedSignatory = {
+      id: crypto.randomUUID(),
+      ...data,
+    };
+    this.signatories.push(newSig);
+    this.recordAudit('signatory_created', 'authorized_signatories', newSig.id, { name: newSig.full_name });
+    return newSig;
+  }
+
+  updateSignatory(id: string, updates: Partial<AuthorizedSignatory>) {
+    const sig = this.signatories.find((s) => s.id === id);
+    if (!sig) throw new Error('Signatory not found');
+    Object.assign(sig, updates);
+    this.recordAudit('signatory_updated', 'authorized_signatories', id, { name: sig.full_name });
+    return sig;
+  }
+
+  toggleSignatoryStatus(id: string) {
+    const sig = this.signatories.find((s) => s.id === id);
+    if (!sig) throw new Error('Signatory not found');
+    sig.is_active = !sig.is_active;
+    this.recordAudit('signatory_status_toggled', 'authorized_signatories', id, { is_active: sig.is_active });
+    return sig;
+  }
+
+  updateDefaultSignatories(normalIds: string[], histoCytoIds: string[]) {
+    this.signatories.forEach((s) => {
+      s.is_default_normal = normalIds.includes(s.id);
+      s.is_default_histo_cyto = histoCytoIds.includes(s.id);
+    });
+    this.recordAudit('default_signatories_updated', 'authorized_signatories', 'default_selection', {
+      normal: normalIds,
+      histoCyto: histoCytoIds,
+    });
+  }
+
+  // Test Catalogue management
+  addTest(data: Omit<TestDefinition, 'id' | 'lab_id'>) {
+    const newTest: TestDefinition = {
+      id: crypto.randomUUID(),
+      lab_id: this.lab.id,
+      ...data,
+    };
+    this.tests.push(newTest);
+    this.recordAudit('test_created', 'test_definitions', newTest.id, { name: newTest.name, code: newTest.code });
+    return newTest;
+  }
+
+  updateTest(id: string, updates: Partial<TestDefinition>) {
+    const test = this.tests.find((t) => t.id === id);
+    if (!test) throw new Error('Test not found');
+    Object.assign(test, updates);
+    this.recordAudit('test_updated', 'test_definitions', id, { name: test.name, code: test.code });
+    return test;
+  }
+
+  toggleTestStatus(id: string) {
+    const test = this.tests.find((t) => t.id === id);
+    if (!test) throw new Error('Test not found');
+    test.is_active = !test.is_active;
+    this.recordAudit('test_status_toggled', 'test_definitions', id, { is_active: test.is_active });
+    return test;
   }
 
   // Patient Registration with duplicate check
@@ -420,6 +749,12 @@ class DiagnosticLabStore {
       });
     });
 
+    let ageYears: number | undefined = patient.estimated_age_years;
+    if (patient.date_of_birth) {
+      const diffMs = Date.now() - new Date(patient.date_of_birth).getTime();
+      ageYears = Math.floor(diffMs / (365.25 * 24 * 60 * 60 * 1000));
+    }
+
     // Create Order Test Snapshots
     const orderTests = selectedTests.map((t, tIdx) => {
       const otId = data.customId ? `${data.customId}-ot-${tIdx + 1}` : crypto.randomUUID();
@@ -439,7 +774,7 @@ class DiagnosticLabStore {
           parameter_code_snapshot: p.code,
           result_type_snapshot: p.result_type,
           unit_snapshot: p.unit,
-          reference_range_snapshot: this.getReferenceRangeSnapshot(p.id, patient.sex),
+          reference_range_snapshot: this.getReferenceRangeSnapshot(p.id, p.code, patient.sex, ageYears),
           display_order: p.display_order,
         })),
       };
@@ -535,25 +870,151 @@ class DiagnosticLabStore {
     return newOrder;
   }
 
-  private getReferenceRangeSnapshot(paramId: string, sex: string): { normal_low?: number; normal_high?: number; critical_low?: number; critical_high?: number; description?: string } {
-    // Configured ranges from clinical pathologist
-    if (paramId === 'b0000000-0000-0000-0000-000000000001') {
-      return { normal_low: 4.5, normal_high: 11.0, critical_low: 2.0, critical_high: 30.0, description: 'Adult Reference Interval' };
+  private getReferenceRangeSnapshot(
+    paramId: string,
+    paramCode?: string,
+    sex?: string,
+    ageYears?: number
+  ): {
+    normal_low?: number;
+    normal_high?: number;
+    critical_low?: number;
+    critical_high?: number;
+    qualitative_expected?: string;
+    description?: string;
+    is_unspecified?: boolean;
+    raw_range_text?: string;
+  } {
+    // 1. Find matching component in catalogue component library
+    const comp = this.components.find(
+      (c) =>
+        (paramCode && c.code.toLowerCase() === paramCode.toLowerCase()) ||
+        c.id === paramId ||
+        c.code === paramId
+    );
+
+    // 2. Resolve demographic-specific text range
+    let rangeText: string | undefined = undefined;
+    let demographicDesc = 'Adult Reference Interval';
+
+    if (comp) {
+      const isChild = ageYears !== undefined && ageYears < 18;
+      if (isChild && comp.child_range) {
+        rangeText = comp.child_range;
+        demographicDesc = `Pediatric Range (<18 yrs)`;
+      } else if (sex === 'female' && comp.female_range) {
+        rangeText = comp.female_range;
+        demographicDesc = `Adult Female Range`;
+      } else if (sex === 'male' && comp.male_range) {
+        rangeText = comp.male_range;
+        demographicDesc = `Adult Male Range`;
+      } else if (comp.gen_range) {
+        rangeText = comp.gen_range;
+        demographicDesc = `General Reference Interval`;
+      }
     }
-    if (paramId === 'b0000000-0000-0000-0000-000000000003') {
-      if (sex === 'female') return { normal_low: 12.0, normal_high: 15.5, critical_low: 7.0, critical_high: 20.0, description: 'Adult Female Range' };
-      return { normal_low: 13.5, normal_high: 17.5, critical_low: 7.0, critical_high: 20.0, description: 'Adult Male Range' };
+
+    // 3. Fallback to existing parameter definition if not found in component library
+    if (!rangeText) {
+      if (paramId === 'b0000000-0000-0000-0000-000000000001' || paramCode === 'WBC') {
+        return { normal_low: 4.5, normal_high: 11.0, critical_low: 2.0, critical_high: 30.0, description: 'Adult Reference Interval', raw_range_text: '4.5 - 11.0' };
+      }
+      if (paramId === 'b0000000-0000-0000-0000-000000000002' || paramCode === 'RBC') {
+        const isFem = sex === 'female';
+        return isFem
+          ? { normal_low: 4.0, normal_high: 5.2, description: 'Adult Female Range', raw_range_text: '4.0 - 5.2' }
+          : { normal_low: 4.5, normal_high: 5.9, description: 'Adult Male Range', raw_range_text: '4.5 - 5.9' };
+      }
+      if (paramId === 'b0000000-0000-0000-0000-000000000003' || paramCode === 'HGB') {
+        const isFem = sex === 'female';
+        return isFem
+          ? { normal_low: 12.0, normal_high: 15.5, critical_low: 7.0, critical_high: 20.0, description: 'Adult Female Range', raw_range_text: '12.0 - 15.5' }
+          : { normal_low: 13.5, normal_high: 17.5, critical_low: 7.0, critical_high: 20.0, description: 'Adult Male Range', raw_range_text: '13.5 - 17.5' };
+      }
+      if (paramId === 'b0000000-0000-0000-0000-000000000004' || paramCode === 'HCT') {
+        const isFem = sex === 'female';
+        return isFem
+          ? { normal_low: 36.0, normal_high: 46.0, description: 'Adult Female Range', raw_range_text: '36.0 - 46.0' }
+          : { normal_low: 41.0, normal_high: 50.0, description: 'Adult Male Range', raw_range_text: '41.0 - 50.0' };
+      }
+      if (paramId === 'b0000000-0000-0000-0000-000000000005' || paramCode === 'PLT') {
+        return { normal_low: 150, normal_high: 450, critical_low: 50, critical_high: 1000, description: 'Platelets', raw_range_text: '150 - 450' };
+      }
+      if (paramId === 'b0000000-0000-0000-0000-000000000010' || paramCode === 'GLUF' || paramCode === 'GLU') {
+        return { normal_low: 70.0, normal_high: 99.0, critical_low: 45.0, critical_high: 400.0, description: 'Fasting Plasma Glucose', raw_range_text: '70.0 - 99.0' };
+      }
+      if (paramId === 'b0000000-0000-0000-0000-000000000020' || paramCode === 'CHOL') {
+        return { normal_low: 125.0, normal_high: 200.0, critical_high: 350.0, description: 'Total Cholesterol', raw_range_text: '125.0 - 200.0' };
+      }
     }
-    if (paramId === 'b0000000-0000-0000-0000-000000000005') {
-      return { normal_low: 150, normal_high: 450, critical_low: 50, critical_high: 1000, description: 'Platelets' };
+
+    if (!rangeText) {
+      // NEVER return fake 10-100 fallback! Return explicit unconfigured status
+      return {
+        is_unspecified: true,
+        description: 'Reference interval not configured',
+      };
     }
-    if (paramId === 'b0000000-0000-0000-0000-000000000010') {
-      return { normal_low: 70.0, normal_high: 99.0, critical_low: 45.0, critical_high: 400.0, description: 'Fasting Glucose' };
+
+    // Parse rangeText (e.g. "70 - 99", "< 150", "> 40", "NEGATIVE")
+    const cleanRange = rangeText.trim();
+    const result: {
+      normal_low?: number;
+      normal_high?: number;
+      critical_low?: number;
+      critical_high?: number;
+      qualitative_expected?: string;
+      description?: string;
+      is_unspecified?: boolean;
+      raw_range_text?: string;
+    } = {
+      description: comp?.range_description || demographicDesc,
+      raw_range_text: cleanRange,
+    };
+
+    // Range like "70 - 99" or "13.5 - 17.5"
+    const dashMatch = cleanRange.match(/^([0-9.]+)\s*[-–]\s*([0-9.]+)$/);
+    if (dashMatch) {
+      result.normal_low = parseFloat(dashMatch[1]);
+      result.normal_high = parseFloat(dashMatch[2]);
+    } else if (cleanRange.startsWith('<')) {
+      const val = parseFloat(cleanRange.replace('<', '').trim());
+      if (!isNaN(val)) result.normal_high = val;
+    } else if (cleanRange.startsWith('>')) {
+      const val = parseFloat(cleanRange.replace('>', '').trim());
+      if (!isNaN(val)) result.normal_low = val;
+    } else {
+      // Qualitative
+      result.qualitative_expected = cleanRange;
     }
-    if (paramId === 'b0000000-0000-0000-0000-000000000020') {
-      return { normal_low: 125.0, normal_high: 200.0, critical_high: 350.0, description: 'Total Cholesterol' };
+
+    // Attach analyte-specific panic/critical thresholds
+    const code = (paramCode || comp?.code || '').toUpperCase();
+    if (code.includes('GLU')) {
+      result.critical_low = 45.0;
+      result.critical_high = 400.0;
+    } else if (code === 'HGB') {
+      result.critical_low = 7.0;
+      result.critical_high = 20.0;
+    } else if (code === 'WBC') {
+      result.critical_low = 2.0;
+      result.critical_high = 30.0;
+    } else if (code === 'PLT') {
+      result.critical_low = 50;
+      result.critical_high = 1000;
+    } else if (code === 'CHOL') {
+      result.critical_high = 350.0;
+    } else if (code === 'TRIG') {
+      result.critical_high = 500.0;
+    } else if (code === 'K') {
+      result.critical_low = 2.8;
+      result.critical_high = 6.2;
+    } else if (code === 'NA') {
+      result.critical_low = 120;
+      result.critical_high = 160;
     }
-    return { normal_low: 10, normal_high: 100 };
+
+    return result;
   }
 
   // Specimen Actions
@@ -796,6 +1257,20 @@ class DiagnosticLabStore {
     const order = this.orders.find((o) => o.id === orderId);
     if (!order) throw new Error('Order not found');
 
+    // 1. Specimen readiness check
+    const rejected = order.specimens.find((s) => s.status === 'rejected');
+    if (rejected) {
+      throw new Error(
+        `Cannot submit for review: Specimen ${rejected.specimen_number} was rejected (${rejected.rejection_reason}). Replacement recollection must be received.`
+      );
+    }
+    const uncollected = order.specimens.find((s) => s.status === 'awaiting_collection');
+    if (uncollected) {
+      throw new Error(
+        `Cannot submit for review: Specimen ${uncollected.specimen_number} (${uncollected.specimen_type}) has not been collected and received.`
+      );
+    }
+
     if (!qaAttestationNotes || qaAttestationNotes.trim().length < 5) {
       throw new Error('Documented Quality Check Attestation is mandatory before submitting for review');
     }
@@ -900,27 +1375,26 @@ class DiagnosticLabStore {
     }
 
     const reviewer = this.getActiveStaff();
-    // 1. Role Check
-    if (!reviewer.roles.includes('authorized_reviewer')) {
-      throw new Error('Permission Denied: Only staff holding the Authorized Reviewer role may authorize reports');
+    // 1. Role Check: Strictly Admin or Authorized Clinical Signatory
+    if (!reviewer.roles.includes('admin') && !reviewer.roles.includes('authorized_reviewer')) {
+      throw new Error('Permission Denied: Only Admin (Clinical Director) or Authorized Clinical Reviewer may authorize reports');
     }
 
-    // 2. Scope & Validity Check
+    // 2. Scope & Validity Check (if reviewer profile has explicit reviewer_scope)
     const scope = reviewer.reviewer_scope;
-    if (!scope || !scope.is_active) {
-      throw new Error('Reviewer lacks active professional credentials or scopes');
-    }
-    const today = new Date().toISOString().split('T')[0];
-    if (today < scope.valid_from || today > scope.valid_to) {
-      throw new Error('Reviewer scope has expired or is not yet valid');
-    }
+    if (scope && scope.is_active) {
+      const today = new Date().toISOString().split('T')[0];
+      if (today < scope.valid_from || today > scope.valid_to) {
+        throw new Error('Reviewer scope has expired or is not yet valid');
+      }
 
-    // Check department scopes
-    if (!scope.verified_scopes.includes('ALL')) {
-      const orderDepts = order.tests.map((t) => t.department_snapshot);
-      const uncovered = orderDepts.find((d) => !scope.verified_scopes.includes(d));
-      if (uncovered) {
-        throw new Error(`Reviewer scope does not cover department: ${uncovered}`);
+      // Check department scopes
+      if (!scope.verified_scopes.includes('ALL')) {
+        const orderDepts = order.tests.map((t) => t.department_snapshot);
+        const uncovered = orderDepts.find((d) => !scope.verified_scopes.includes(d));
+        if (uncovered) {
+          throw new Error(`Reviewer scope does not cover department: ${uncovered}`);
+        }
       }
     }
 
@@ -988,7 +1462,11 @@ class DiagnosticLabStore {
       },
       reviewer: {
         full_name: reviewer.full_name,
-        credentials: scope.credentials_title,
+        credentials:
+          scope?.credentials_title ||
+          (this.lab.clinical_director
+            ? `${this.lab.clinical_director}, Clinical Director (Reg: ${this.lab.lab_license_number})`
+            : 'Authorized Laboratory Signatory'),
         authorized_at: new Date().toISOString(),
       },
       qa_attestation: {
@@ -1039,6 +1517,14 @@ class DiagnosticLabStore {
     };
 
     sub.status = 'authorized';
+
+    // Mark previous released/authorized version as superseded
+    if (order.report_versions.length > 0) {
+      const prior = order.report_versions[0];
+      prior.status = 'superseded';
+      newReport.prior_report_version_id = prior.id;
+    }
+
     order.report_versions.unshift(newReport);
 
     this.recordAudit(
@@ -1105,6 +1591,38 @@ class DiagnosticLabStore {
     );
 
     return targetReport;
+  }
+
+  // Initiate Controlled Report Amendment
+  createAmendment(data: {
+    orderId: string;
+    amendmentReason: string;
+    notes?: string;
+  }): void {
+    const order = this.orders.find((o) => o.id === data.orderId);
+    if (!order) throw new Error('Order not found');
+    if (order.report_versions.length === 0) {
+      throw new Error('Only released or authorized orders can be amended');
+    }
+    if (!data.amendmentReason || data.amendmentReason.trim().length < 5) {
+      throw new Error('A documented clinical amendment reason (minimum 5 characters) is mandatory.');
+    }
+    const staff = this.getActiveStaff();
+    const latestReport = order.report_versions[0];
+
+    // Invalidate any existing pending submissions so results can be adjusted under amendment
+    order.submissions.forEach((s) => {
+      if (s.status === 'pending') s.status = 'invalidated_by_edit';
+    });
+
+    // Record amendment audit entry
+    this.recordAudit('report_amendment_initiated', 'orders', order.id, {
+      order_number: order.order_number,
+      latest_report_number: latestReport.report_number,
+      reason: data.amendmentReason,
+      notes: data.notes,
+      initiated_by: staff.full_name,
+    });
   }
 
   // Record Payment

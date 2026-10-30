@@ -32,8 +32,13 @@ export interface LabProfile {
   name: string;
   code: string;
   address: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
   phone: string;
   email: string;
+  logo_url?: string;
+  working_hours?: string;
   currency_code: string;
   timezone: string;
   clinical_director: string;
@@ -42,6 +47,96 @@ export interface LabProfile {
   report_footer_text: string;
   max_staff_discount_percentage: number;
   critical_alert_phone: string;
+  accreditation_details?: string;
+}
+
+export interface LabCategory {
+  id: string;
+  code: string;
+  name: string;
+  department?: string;
+  display_order: number;
+  is_active: boolean;
+}
+
+export interface SpecimenType {
+  id: string;
+  code: string;
+  name: string;
+  container: string;
+  color_code?: string;
+  is_active: boolean;
+}
+
+export interface LabComponent {
+  id: string;
+  code: string;
+  name: string;
+  display_name: string;
+  unit?: string;
+  value_type: 'numeric' | 'text' | 'positive_negative' | 'dropdown' | 'calculated';
+  control_type: 'number_input' | 'text_input' | 'dropdown' | 'radio';
+  method?: string;
+  value_lookup?: string;
+  range_description?: string;
+  gen_range?: string;
+  male_range?: string;
+  female_range?: string;
+  child_range?: string;
+  display_sequence: number;
+  is_active: boolean;
+}
+
+export interface TestComponentMapping {
+  id: string;
+  test_definition_id: string;
+  component_id: string;
+  component_name: string;
+  display_name?: string;
+  unit?: string;
+  value_type: string;
+  range?: string;
+  display_sequence: number;
+  indent: number;
+  group_val?: string;
+  sheet: boolean;
+  is_active: boolean;
+}
+
+export interface ReportTemplate {
+  id: string;
+  name: string;
+  short_name: string;
+  template_type: string;
+  description?: string;
+  column_settings: {
+    name: boolean;
+    result: boolean;
+    range: boolean;
+    method: boolean;
+    unit: boolean;
+    remarks: boolean;
+  };
+  header_text?: string;
+  footer_text?: string;
+  is_default: boolean;
+  display_sequence: number;
+  is_active: boolean;
+}
+
+export interface AuthorizedSignatory {
+  id: string;
+  full_name: string;
+  designation: string;
+  qualifications: string;
+  registration_number: string;
+  registration_authority: string;
+  signature_image_url?: string;
+  authorized_categories: string[];
+  effective_date: string;
+  is_active: boolean;
+  is_default_normal: boolean;
+  is_default_histo_cyto: boolean;
 }
 
 export interface StaffProfile {
@@ -117,15 +212,31 @@ export interface TestDefinition {
   lab_id: string;
   code: string; // CBC, GLU, LIPID
   name: string;
+  reporting_name?: string;
   department: string; // HEM, BIO, MICRO, etc.
+  category_name?: string;
+  service_department?: string;
   price: number;
   turnaround_hours: number;
   specimen_type: string;
+  specimens?: string[];
   container_type: string;
   fasting_required: boolean;
   instructions?: string;
   is_panel: boolean;
   is_active: boolean;
+  report_template_id?: string;
+  report_template_name?: string;
+  run_no_type?: string;
+  display_sequence?: number;
+  is_sms_applicable?: boolean;
+  is_lis_applicable?: boolean;
+  is_valid_for_reporting?: boolean;
+  tax_applicable?: boolean;
+  is_outsourced?: boolean;
+  has_negative_results?: boolean;
+  interpretation?: string;
+  component_mappings?: TestComponentMapping[];
   parameters: TestParameter[];
 }
 
@@ -144,6 +255,8 @@ export interface OrderTestParameterInstance {
     critical_high?: number;
     qualitative_expected?: string;
     description?: string;
+    is_unspecified?: boolean;
+    raw_range_text?: string;
   };
   display_order: number;
 }

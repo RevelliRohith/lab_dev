@@ -9,10 +9,10 @@ describe('Diagnostic Laboratory Safety & Invariants', () => {
     globalStore.activeStaffId = '33333333-3333-3333-3333-333333333333';
   });
 
-  describe('1. Role Boundaries & Authorization Integrity', () => {
-    it('prevents Admin alone from authorizing clinical reports', () => {
-      // Switch active user to Admin (Sarah Jenkins)
-      globalStore.setActiveStaffId('22222222-2222-2222-2222-222222222222');
+  describe('1. Role Boundaries & Authorization Integrity (Strict Two-Role Architecture: Admin & Staff)', () => {
+    it('prevents Lab Staff from authorizing clinical reports', () => {
+      // Active user is Lab Staff (Rishi)
+      globalStore.setActiveStaffId('33333333-3333-3333-3333-333333333333');
 
       // Find an order awaiting review
       const orderAwaiting = globalStore.orders.find((o) =>
@@ -21,14 +21,31 @@ describe('Diagnostic Laboratory Safety & Invariants', () => {
       expect(orderAwaiting).toBeDefined();
       const sub = orderAwaiting!.submissions.find((s) => s.status === 'pending')!;
 
-      // Admin alone cannot authorize
+      // Staff cannot authorize reports
       expect(() => {
         globalStore.authorizeReport(orderAwaiting!.id, sub.id);
-      }).toThrow(/Permission Denied: Only staff holding the Authorized Reviewer role/);
+      }).toThrow(/Permission Denied: Only Admin \(Clinical Director\) or Authorized Clinical Reviewer may authorize reports/);
+    });
+
+    it('permits Admin (Clinical Director) to authorize clinical reports', () => {
+      // Switch to Admin (Padma Reddy)
+      globalStore.setActiveStaffId('22222222-2222-2222-2222-222222222222');
+
+      const orderAwaiting = globalStore.orders.find((o) =>
+        o.submissions.some((s) => s.status === 'pending')
+      );
+      expect(orderAwaiting).toBeDefined();
+      const sub = orderAwaiting!.submissions.find((s) => s.status === 'pending')!;
+
+      // Admin authorizes report directly
+      const rep = globalStore.authorizeReport(orderAwaiting!.id, sub.id, 'Clinical Director review verified');
+      expect(rep.status).toBe('authorized');
+      expect(rep.authorized_by).toBe('22222222-2222-2222-2222-222222222222');
+      expect(rep.report_snapshot.reviewer.full_name).toContain('Padma');
     });
 
     it('enforces INDEPENDENT clinical authorization: reviewer cannot authorize results they entered', () => {
-      // Tech David creates an order
+      // Tech creates an order
       globalStore.setActiveStaffId('33333333-3333-3333-3333-333333333333');
       const order = globalStore.createOrder({
         patientId: globalStore.patients[0].id,
@@ -36,8 +53,8 @@ describe('Diagnostic Laboratory Safety & Invariants', () => {
       });
       globalStore.updateSpecimenStatus(order.specimens[0].id, 'collect_and_receive');
 
-      // Now suppose Dr. Vance (Reviewer) enters the result herself
-      globalStore.setActiveStaffId('44444444-4444-4444-4444-444444444444');
+      // Now suppose Admin (Padma) enters the result herself
+      globalStore.setActiveStaffId('22222222-2222-2222-2222-222222222222');
       globalStore.updateResult({
         orderId: order.id,
         orderTestParameterId: order.results[0].order_test_parameter_id,
@@ -48,7 +65,7 @@ describe('Diagnostic Laboratory Safety & Invariants', () => {
       // Submit for review
       const sub = globalStore.submitForReview(order.id, 'Daily glucose QC verified in control.');
 
-      // Dr. Vance attempts to authorize results that she entered herself
+      // Admin attempts to authorize results that she personally entered
       expect(() => {
         globalStore.authorizeReport(order.id, sub.id);
       }).toThrow(/INDEPENDENT AUTHORIZATION VIOLATION/);
@@ -324,6 +341,164 @@ describe('Diagnostic Laboratory Safety & Invariants', () => {
       const pdfBytes = await generateLaboratoryReportPdf(released.report_snapshot);
       expect(pdfBytes).toBeInstanceOf(Uint8Array);
       expect(pdfBytes.length).toBeGreaterThan(1000);
+    });
+  });
+
+  describe('8. Dynamic Catalogue Range Resolution & Regression Protection', () => {
+    it('resolves ranges dynamically from configured component library without 10-100 fallback', () => {
+      // Create order with Fasting Glucose for an adult male
+      globalStore.setActiveStaffId('33333333-3333-3333-3333-333333333333');
+      const order = globalStore.createOrder({
+        patientId: globalStore.patients[0].id, // Arthur Morgan (Male)
+        testIds: [globalStore.tests[1].id], // Glucose Fasting
+      });
+
+      const gluParam = order.tests[0].parameters[0];
+      const rr = gluParam.reference_range_snapshot;
+
+      // Assert it resolves from component library (70.0 - 99.0, NOT 10 - 100!)
+      expect(rr.normal_low).toBe(70.0);
+      expect(rr.normal_high).toBe(99.0);
+      expect(rr.critical_low).toBe(45.0);
+      expect(rr.critical_high).toBe(400.0);
+      expect(rr.is_unspecified).toBeFalsy();
+
+      // REGRESSION CASE: 35 mg/dL was previously considered "normal" under 10-100 fallback!
+      // Must be flagged as CRITICAL under configured glucose range!
+      globalStore.updateSpecimenStatus(order.specimens[0].id, 'collect_and_receive');
+      const res = globalStore.updateResult({
+        orderId: order.id,
+        orderTestParameterId: gluParam.id,
+        disposition: 'performed',
+        numericValue: 35.0,
+      });
+
+      expect(res.flag).toBe('critical'); // 35 <= critical_low (45.0)
+    });
+
+    it('resolves demographic female-specific ranges correctly', () => {
+      globalStore.setActiveStaffId('33333333-3333-3333-3333-333333333333');
+      const order = globalStore.createOrder({
+        patientId: globalStore.patients[1].id, // Sadie Adler (Female)
+        testIds: [globalStore.tests[0].id], // CBC
+      });
+
+      // Find Hemoglobin parameter
+      const hgbParam = order.tests[0].parameters.find((p) => p.parameter_code_snapshot === 'HGB');
+      expect(hgbParam).toBeDefined();
+      const rr = hgbParam!.reference_range_snapshot;
+
+      // Female normal range is 12.0 - 15.5 g/dL
+      expect(rr.normal_low).toBe(12.0);
+      expect(rr.normal_high).toBe(15.5);
+      expect(rr.description).toContain('Female');
+    });
+  });
+
+  describe('9. Specimen Readiness Guard on Result Submission', () => {
+    it('blocks submission for review when specimen has not been collected and received', () => {
+      globalStore.setActiveStaffId('33333333-3333-3333-3333-333333333333');
+      const order = globalStore.createOrder({
+        patientId: globalStore.patients[0].id,
+        testIds: [globalStore.tests[1].id],
+      });
+
+      // Enter result while specimen is still in awaiting_collection
+      globalStore.updateResult({
+        orderId: order.id,
+        orderTestParameterId: order.results[0].order_test_parameter_id,
+        disposition: 'performed',
+        numericValue: 85,
+      });
+
+      // Submitting must throw specimen readiness error
+      expect(() => {
+        globalStore.submitForReview(order.id, 'Attestation notes for test');
+      }).toThrow(/has not been collected and received/);
+    });
+
+    it('blocks submission for review when specimen is rejected', () => {
+      globalStore.setActiveStaffId('33333333-3333-3333-3333-333333333333');
+      const order = globalStore.createOrder({
+        patientId: globalStore.patients[0].id,
+        testIds: [globalStore.tests[1].id],
+      });
+
+      globalStore.updateSpecimenStatus(order.specimens[0].id, 'collect');
+      globalStore.updateSpecimenStatus(order.specimens[0].id, 'reject', 'Insufficient quantity');
+
+      globalStore.updateResult({
+        orderId: order.id,
+        orderTestParameterId: order.results[0].order_test_parameter_id,
+        disposition: 'performed',
+        numericValue: 85,
+      });
+
+      expect(() => {
+        globalStore.submitForReview(order.id, 'Attestation notes for test');
+      }).toThrow(/was rejected.*recollection must be received/i);
+    });
+  });
+
+  describe('10. Complete Report Amendment Flow (v1 -> v2 Replacement)', () => {
+    it('executes full amendment lifecycle: release v1 -> amend reason -> edit -> v2 supersedes v1', () => {
+      // 1. Staff creates and completes order
+      globalStore.setActiveStaffId('33333333-3333-3333-3333-333333333333');
+      const order = globalStore.createOrder({
+        patientId: globalStore.patients[0].id,
+        testIds: [globalStore.tests[1].id], // Glucose
+      });
+      globalStore.updateSpecimenStatus(order.specimens[0].id, 'collect_and_receive');
+      globalStore.updateResult({
+        orderId: order.id,
+        orderTestParameterId: order.results[0].order_test_parameter_id,
+        disposition: 'performed',
+        numericValue: 95.0,
+      });
+
+      const sub1 = globalStore.submitForReview(order.id, 'Pre-release QC verified');
+
+      // 2. Admin authorizes and releases v1
+      globalStore.setActiveStaffId('22222222-2222-2222-2222-222222222222');
+      const rep1 = globalStore.authorizeReport(order.id, sub1.id, 'Initial sign-off');
+      const rel1 = globalStore.releaseReport(rep1.id, `reports/${rep1.report_number}.pdf`);
+      expect(rel1.status).toBe('released');
+      expect(rel1.version_number).toBe(1);
+
+      // 3. Initiate Amendment
+      globalStore.createAmendment({
+        orderId: order.id,
+        amendmentReason: 'Physician requested repeat test verification from primary sample',
+      });
+
+      // 4. Update result with re-run value (91.0)
+      globalStore.setActiveStaffId('33333333-3333-3333-3333-333333333333');
+      globalStore.updateResult({
+        orderId: order.id,
+        orderTestParameterId: order.results[0].order_test_parameter_id,
+        disposition: 'performed',
+        numericValue: 91.0,
+      });
+
+      const sub2 = globalStore.submitForReview(order.id, 'Re-run on secondary channel confirmed at 91.0 mg/dL');
+
+      // 5. Admin authorizes replacement version (v2)
+      globalStore.setActiveStaffId('22222222-2222-2222-2222-222222222222');
+      const rep2 = globalStore.authorizeReport(order.id, sub2.id, 'Amended report released');
+      const rel2 = globalStore.releaseReport(rep2.id, `reports/${rep2.report_number}.pdf`);
+
+      // 6. Verify versioning invariants
+      expect(rel2.version_number).toBe(2);
+      expect(rel2.status).toBe('released');
+      expect(rel2.prior_report_version_id).toBe(rep1.id);
+
+      // Verify v1 is marked superseded
+      expect(rep1.status).toBe('superseded');
+
+      // Both versions preserved in history
+      expect(order.report_versions.length).toBe(2);
+      expect(order.report_versions[0].version_number).toBe(2);
+      expect(order.report_versions[1].version_number).toBe(1);
     });
   });
 });

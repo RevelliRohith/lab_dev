@@ -16,6 +16,8 @@ import {
   FlaskConical,
   X,
   Sparkles,
+  Bell,
+  Calendar,
 } from 'lucide-react';
 
 interface TopBarProps {
@@ -34,6 +36,23 @@ export function TopBar({ onMenuToggle, onStaffChange, className }: TopBarProps) 
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const lab = globalStore.lab;
+
+  // Restore staff from localStorage and listen to staff changes
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('rishi_active_staff_id');
+      if (saved && globalStore.staff.some((s) => s.id === saved && s.status === 'active')) {
+        globalStore.activeStaffId = saved;
+        setCurrentStaff(globalStore.getActiveStaff());
+      }
+    } catch {}
+
+    const handleStaffChange = () => {
+      setCurrentStaff(globalStore.getActiveStaff());
+    };
+    window.addEventListener('staff-changed', handleStaffChange);
+    return () => window.removeEventListener('staff-changed', handleStaffChange);
+  }, []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -163,12 +182,12 @@ export function TopBar({ onMenuToggle, onStaffChange, className }: TopBarProps) 
               <span className="text-sm font-extrabold text-[#12234A] tracking-tight group-hover:text-[#2563EB] transition-colors leading-tight">
                 {lab.name}
               </span>
-              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold text-[#0D9488] bg-teal-50/80 border border-teal-200/50 px-2 py-0.5 rounded-full">
+              <span className="hidden xl:inline-flex items-center gap-1 text-[10px] font-semibold text-[#0D9488] bg-teal-50/80 border border-teal-200/50 px-2 py-0.5 rounded-full">
                 <MapPin className="w-2.5 h-2.5" />
                 {lab.address}
               </span>
             </div>
-            <p className="text-[10px] text-[#526581] hidden sm:block">
+            <p className="text-[10px] text-[#526581] hidden xl:block">
               Diagnostic Healthcare Laboratory
             </p>
           </div>
@@ -176,7 +195,7 @@ export function TopBar({ onMenuToggle, onStaffChange, className }: TopBarProps) 
       </div>
 
       {/* 2. Center: Global Patient Quick Search with Glass Input */}
-      <div className="flex-1 max-w-md mx-4 relative hidden sm:block" ref={searchRef}>
+      <div className="flex-1 max-w-md mx-4 relative hidden lg:block" ref={searchRef}>
         <div className="relative">
           <Search className="w-4 h-4 text-[#526581] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
@@ -187,8 +206,8 @@ export function TopBar({ onMenuToggle, onStaffChange, className }: TopBarProps) 
             onFocus={() => {
               if (searchQuery.trim().length > 0) setIsSearchOpen(true);
             }}
-            placeholder="Search patient by name, MRN, or phone..."
-            className="glass-input w-full pl-9 pr-14 py-2 text-xs text-[#12234A] placeholder-[#64748B] rounded-xl outline-none transition-all"
+            placeholder="Search patient by name, phone or Patient ID..."
+            className="glass-input w-full pl-9 pr-14 py-2 text-xs text-[#14213D] placeholder-[#64748B] rounded-xl outline-none transition-all"
           />
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
             {searchQuery ? (
@@ -198,13 +217,13 @@ export function TopBar({ onMenuToggle, onStaffChange, className }: TopBarProps) 
                   setSearchQuery('');
                   setIsSearchOpen(false);
                 }}
-                className="text-[#64748B] hover:text-[#12234A] p-0.5"
+                className="text-[#64748B] hover:text-[#14213D] p-0.5"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             ) : (
               <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-semibold text-[#64748B] bg-white/70 border border-slate-200/80 rounded shadow-2xs pointer-events-none">
-                ⌘K
+                Ctrl K
               </kbd>
             )}
           </div>
@@ -266,42 +285,48 @@ export function TopBar({ onMenuToggle, onStaffChange, className }: TopBarProps) 
         )}
       </div>
 
-      {/* 3. Right: Clock & Staff Switcher in Glass Pills */}
-      <div className="flex items-center gap-2.5">
-        {/* Live IST Clock */}
+      {/* 3. Right: Date/Time, Notifications & Authenticated Account Switcher */}
+      <div className="flex items-center gap-2.5 sm:gap-3.5">
+        {/* Live IST Date & Time with Calendar Icon */}
         {currentTime && (
-          <div className="hidden lg:flex items-center gap-2 text-xs text-[#12234A] glass-pill px-3 py-1.5 font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="font-semibold">{currentTime}</span>
+          <div className="hidden lg:flex items-center gap-2 text-xs text-[#14213D] bg-white/[0.60] backdrop-blur-[12px] border border-white/[0.80] rounded-xl px-3 py-1.5 font-medium shadow-xs">
+            <Calendar className="w-3.5 h-3.5 text-[#2563EB]" />
+            <span className="font-semibold text-xs text-[#14213D]">{currentTime}</span>
           </div>
         )}
 
-        {/* Staff Switcher Badge: Exactly Two Operational Roles (Padma - Admin, Rishi - Staff) */}
+        {/* Notification Bell with Red Badge */}
+        <div className="relative cursor-pointer p-2 rounded-xl bg-white/[0.60] backdrop-blur-[12px] border border-white/[0.80] hover:bg-white/80 transition-all text-[#64748B] hover:text-[#14213D] shadow-xs">
+          <Bell className="w-4 h-4" />
+          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-extrabold flex items-center justify-center shadow-xs">
+            2
+          </span>
+        </div>
+
+        {/* Authenticated Account Profile Dropdown (Admin / Staff) */}
         <div className="relative group">
-          <div className="flex items-center gap-2 glass-card hover:bg-white/80 rounded-xl px-2.5 py-1.5 cursor-pointer transition-all border border-white/60">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#2563EB] to-[#7C3AED] text-white font-bold text-xs flex items-center justify-center shadow-xs">
-              {currentStaff.full_name
-                .replace(/Dr\./i, '')
-                .trim()
-                .substring(0, 2)
-                .toUpperCase()}
+          <div className="flex items-center gap-2.5 bg-white/[0.68] hover:bg-white/[0.88] rounded-xl px-2.5 py-1.5 cursor-pointer transition-all border border-white/[0.85] shadow-xs">
+            <div className="w-7 h-7 rounded-full bg-[#14213D] text-white font-bold text-xs flex items-center justify-center shadow-xs">
+              {currentStaff.full_name.charAt(0).toUpperCase()}
             </div>
-            <div className="text-left hidden sm:block">
-              <div className="text-xs font-bold text-[#12234A] flex items-center gap-1">
-                <span>{currentStaff.full_name.split(' ')[0]}</span>
-                <ChevronDown className="w-3 h-3 text-[#526581]" />
-              </div>
-              <div className="mt-0.5">
-                {getPrimaryRoleBadge(currentStaff.roles)}
-              </div>
+            <div className="text-left hidden sm:flex items-center gap-1.5">
+              <span className="text-xs font-bold text-[#14213D]">
+                {currentStaff.roles.includes('admin') ? 'Padma (Admin)' : 'Rishi (Staff)'}
+              </span>
+              <ChevronDown className="w-3 h-3 text-[#64748B]" />
             </div>
 
-            {/* Quick dropdown select to change active user: ONLY Admin and Staff */}
+            {/* Role indicator badge */}
+            <div className="hidden xl:block">
+              {getPrimaryRoleBadge(currentStaff.roles)}
+            </div>
+
+            {/* Select for switching active account: strictly Admin vs Staff */}
             <select
               value={currentStaff.id}
               onChange={(e) => handleSwitchStaff(e.target.value)}
               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-              aria-label="Switch active staff member"
+              aria-label="Switch authenticated account"
             >
               {globalStore.staff
                 .filter(

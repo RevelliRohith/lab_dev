@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased min-h-screen font-sans selection:bg-blue-200 selection:text-[#12234A] text-[#12234A] bg-[#F8FAFC]">
+      <body className="antialiased min-h-screen font-sans selection:bg-blue-200 selection:text-[#12234A] text-[#12234A] bg-[#F8FAFC] overflow-x-hidden">
         <AppShell>{children}</AppShell>
       </body>
     </html>

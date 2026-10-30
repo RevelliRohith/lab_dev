@@ -407,12 +407,9 @@ export default function OrderResultEntryPage({
         }
       }
 
-      // Use verified signatory credentials for report snapshot
-      const prevStaffId = globalStore.activeStaffId;
-      globalStore.activeStaffId = '44444444-4444-4444-4444-444444444444';
+      // Authorize using the authenticated Admin / Reviewer credentials
       const newReport = globalStore.authorizeReport(order.id, sub.id, authComments);
       globalStore.releaseReport(newReport.id, `reports/${newReport.report_number}.pdf`);
-      globalStore.activeStaffId = prevStaffId;
 
       setShowAuthModal(false);
       setSuccessMessage(
@@ -838,15 +835,47 @@ export default function OrderResultEntryPage({
                                 />
                               </div>
                             ) : (
-                              <input
-                                type="text"
-                                placeholder="Enter observed text result"
-                                value={state.text ?? ''}
-                                onChange={(e) =>
-                                  handleValueChange(param.id, 'text', e.target.value)
+                              (() => {
+                                const comp = globalStore.components.find(
+                                  (c) =>
+                                    c.code.toLowerCase() === param.parameter_code_snapshot.toLowerCase() ||
+                                    c.id === param.test_parameter_id
+                                );
+                                const options = comp?.value_lookup
+                                  ? comp.value_lookup.split(',').map((s) => s.trim())
+                                  : comp?.value_type === 'positive_negative'
+                                  ? ['NEGATIVE', 'POSITIVE', 'EQUIVOCAL']
+                                  : null;
+
+                                if (options && options.length > 0) {
+                                  return (
+                                    <select
+                                      value={state.text ?? ''}
+                                      onChange={(e) => handleValueChange(param.id, 'text', e.target.value)}
+                                      className="glass-input w-full px-3 py-1.5 text-xs rounded-xl font-medium"
+                                    >
+                                      <option value="">-- Select Result --</option>
+                                      {options.map((opt) => (
+                                        <option key={opt} value={opt}>
+                                          {opt}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  );
                                 }
-                                className="glass-input w-full px-3 py-1.5 text-xs rounded-xl"
-                              />
+
+                                return (
+                                  <input
+                                    type="text"
+                                    placeholder="Enter observed text result"
+                                    value={state.text ?? ''}
+                                    onChange={(e) =>
+                                      handleValueChange(param.id, 'text', e.target.value)
+                                    }
+                                    className="glass-input w-full px-3 py-1.5 text-xs rounded-xl"
+                                  />
+                                );
+                              })()
                             )
                           ) : (
                             <input
@@ -869,19 +898,38 @@ export default function OrderResultEntryPage({
 
                         {/* Reference Range Details */}
                         <td className="px-4 py-3.5 text-xs">
-                          {rr.normal_low !== undefined && rr.normal_high !== undefined ? (
+                          {rr.is_unspecified ? (
+                            <span className="text-[#94A3B8] italic">Not configured</span>
+                          ) : rr.raw_range_text ? (
+                            <div>
+                              <div className="font-semibold text-[#12234A]">
+                                {rr.raw_range_text}
+                              </div>
+                              {(rr.critical_low !== undefined || rr.critical_high !== undefined) && (
+                                <div className="text-[10px] text-rose-600 font-semibold mt-0.5">
+                                  Panic Thresholds:{' '}
+                                  {rr.critical_low !== undefined && `<${rr.critical_low}`}
+                                  {rr.critical_low !== undefined && rr.critical_high !== undefined && ' or '}
+                                  {rr.critical_high !== undefined && `>${rr.critical_high}`}
+                                </div>
+                              )}
+                            </div>
+                          ) : rr.normal_low !== undefined && rr.normal_high !== undefined ? (
                             <div>
                               <div className="font-semibold text-[#12234A]">
                                 {rr.normal_low} – {rr.normal_high}
                               </div>
-                              {rr.critical_low !== undefined && rr.critical_high !== undefined && (
+                              {(rr.critical_low !== undefined || rr.critical_high !== undefined) && (
                                 <div className="text-[10px] text-rose-600 font-semibold mt-0.5">
-                                  Panic Thresholds: &lt;{rr.critical_low} or &gt;{rr.critical_high}
+                                  Panic Thresholds:{' '}
+                                  {rr.critical_low !== undefined && `<${rr.critical_low}`}
+                                  {rr.critical_low !== undefined && rr.critical_high !== undefined && ' or '}
+                                  {rr.critical_high !== undefined && `>${rr.critical_high}`}
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <span className="text-[#526581] italic">Qualitative / Descriptive</span>
+                            <span className="text-[#526581] italic">{rr.description || 'Descriptive'}</span>
                           )}
                         </td>
 

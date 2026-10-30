@@ -100,28 +100,27 @@ export function Sidebar({ className }: { className?: string } = {}) {
         <div>
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all group"
+            className="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-white/60 transition-all group"
           >
-            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#7C3AED] p-0.5 shadow-sm glow-blue flex items-center justify-center group-hover:scale-105 transition-transform">
+            <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-[#2563EB] to-[#3B82F6] p-1.5 shadow-md shadow-blue-500/20 flex items-center justify-center group-hover:scale-105 transition-transform">
               <Image
                 src="/images/flask-logo.png"
                 alt="Rishi Laboratory Logo"
-                width={26}
-                height={26}
+                width={28}
+                height={28}
                 className="object-contain drop-shadow"
                 priority
               />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-extrabold text-[#12234A] tracking-tight truncate group-hover:text-[#2563EB] transition-colors">
-                  Rishi Lab
-                </span>
-                <span className="text-[9px] font-bold text-[#2563EB] bg-blue-50/80 border border-blue-200/50 px-1.5 py-0.2 rounded-full">
-                  LIS
+                <span className="text-sm font-extrabold text-[#14213D] tracking-tight truncate group-hover:text-[#2563EB] transition-colors">
+                  Rishi Laboratory
                 </span>
               </div>
-              <p className="text-[11px] text-[#526581] truncate">Diagnostic Suite</p>
+              <p className="text-[10px] font-medium text-[#64748B] truncate">
+                Diagnostic & Pathology Services
+              </p>
             </div>
           </Link>
 
@@ -167,24 +166,20 @@ export function Sidebar({ className }: { className?: string } = {}) {
         </div>
 
         {/* Sidebar Footer Info Card */}
-        <div className="p-3 rounded-xl glass-card text-xs space-y-2 mt-auto">
+        <div className="p-3.5 rounded-2xl bg-white/[0.60] backdrop-blur-[12px] border border-white/[0.80] text-xs space-y-2 mt-auto shadow-xs">
           <div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <p className="font-extrabold text-[#12234A] text-xs">Rishi Laboratory</p>
-            </div>
-            <p className="text-[11px] text-[#526581] mt-0.5">Choutuppal, Telangana</p>
+            <p className="font-extrabold text-[#14213D] text-xs">Rishi Laboratory</p>
+            <p className="text-[11px] text-[#64748B] mt-0.5">Choutuppal, Telangana</p>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-[#0D9488] font-bold">
-            <Phone className="w-3 h-3 text-[#0D9488]" />
-            <span>+91 98482 28971</span>
+          <div className="flex items-center gap-1.5 text-[11px] text-[#2563EB] font-bold">
+            <Phone className="w-3 h-3 text-[#2563EB]" />
+            <span>9848228971</span>
           </div>
-          <div className="pt-2 border-t border-slate-200/50 flex items-center justify-between text-[10px] text-[#64748B]">
-            <span className="font-semibold text-emerald-600 flex items-center gap-1">
-              <Sparkles className="w-2.5 h-2.5 text-emerald-500" />
-              Port 3005
+          <div className="pt-2 border-t border-slate-200/50 flex items-center justify-between text-[10px]">
+            <span className="font-semibold text-emerald-600 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Online (Port 3005)
             </span>
-            <span className="font-mono text-[#526581]">v1.0 Ready</span>
           </div>
         </div>
       </div>
